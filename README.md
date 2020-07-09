@@ -5,6 +5,8 @@
 
 [![DeepScan grade](https://deepscan.io/api/teams/9459/projects/12777/branches/202379/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=9459&pid=12777&bid=202379)
 ![ESLint](https://github.com/blmage/duolingo-tts-controls/workflows/ESLint/badge.svg)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/hfgbpmknceenkbljmjlogkmhbpnbiika)](https://chrome.google.com/webstore/detail/duolingo-tts-controls/hfgbpmknceenkbljmjlogkmhbpnbiika)
+[![Mozilla Add-on](https://img.shields.io/amo/v/duolingo-tts-controls)](https://addons.mozilla.org/firefox/addon/duolingo-tts-controls/)
 
 A small browser extension providing **playback controls** for the **listening challenges** on
 [Duolingo](https://www.duolingo.com).
@@ -19,7 +21,8 @@ A small browser extension providing **playback controls** for the **listening ch
 
 ### Download
 
-Available soon.
+* [**Chrome** extension](https://chrome.google.com/webstore/detail/duolingo-tts-controls/hfgbpmknceenkbljmjlogkmhbpnbiika)
+* [**Firefox** add-on](https://addons.mozilla.org/firefox/addon/duolingo-tts-controls/)
 
 ### Features
 
@@ -63,8 +66,8 @@ No keyboard shortcuts are available at the moment, but this is the number one pr
     * wait for me to fix it (you can
       [open an issue](https://github.com/blmage/duolingo-tts-controls/issues/new) if there is none yet about it),
       
-    * if you're a developer, try to fix it yourself, then open a
-      [related PR](https://github.com/blmage/duolingo-tts-controls/compare).
+    * if you're a developer, try to fix it yourself, then
+      [open a related PR](https://github.com/blmage/duolingo-tts-controls/compare).
 
 * Due to hard limitations with the underlying technology (sounds are not accessible via Ajax requests, preventing us
   from using the Web Audio API), the volume can not be raised over 100%. 
