@@ -268,7 +268,7 @@ function setCurrentChallenge(challengeIndex) {
       if (challengeHowl.state() === 'loaded') {
         onHowlLoaded();
       } else {
-        challengeHowl.once('loaded', onHowlLoaded);
+        challengeHowl.once('load', onHowlLoaded);
       }
     });
 
