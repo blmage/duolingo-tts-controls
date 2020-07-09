@@ -2,8 +2,8 @@ import { h, render } from 'preact';
 import { _, it } from 'param.macro';
 import { discardEvent, isArray, isObject, logError, toggleElement } from './functions';
 import { EXTENSION_PREFIX, LISTENING_CHALLENGE_TYPES, NEW_SESSION_URL_REGEXP } from './constants';
-import { applyCurrentTtsSettingsToHowlSound, TTS_TYPE_NORMAL, TTS_TYPE_SLOW } from './sounds';
-import Controls from './components/Controls';
+import { applyCurrentTtsSettingsToHowlSound, TTS_TYPE_NORMAL, TTS_TYPE_SLOW } from './tts';
+import ControlPanel from './components/ControlPanel';
 
 /**
  * A TTS sound from a practice challenge.
@@ -183,15 +183,15 @@ let currentChallengeHowls = {};
 let currentControlsForms = {};
 
 /**
- * (Re-)renders controls in the current form corresponding to the given TTS type.
+ * (Re-)renders the control panel in the current form corresponding to the given TTS type.
  *
  * @param {string} ttsType A TTS type.
  */
-function renderFormControls(ttsType) {
+function renderFormControlPanel(ttsType) {
   if (currentControlsForms[ttsType] && currentControlsForms[ttsType].isConnected) {
     render(
-      <Controls
-        key={`controls-${ttsType}`}
+      <ControlPanel
+        key={`control-panel-${ttsType}`}
         ttsType={ttsType}
         howl={currentChallengeHowls[ttsType]}/>,
       currentControlsForms[ttsType]
@@ -211,7 +211,7 @@ function setCurrentChallenge(challengeIndex) {
   if (playbackButtonsWrapper !== lastPlaybackButtonsWrapper) {
     lastPlaybackButtonsWrapper = playbackButtonsWrapper;
 
-    // Force unmounting the previous forms to ensure that all the necessary cleanup has been done.
+    // Force unmounting the previous control panels to ensure that all the necessary cleanup has been done.
     Object.values(currentControlsForms).forEach(render('', _));
 
     currentControlsForms = {};
@@ -261,7 +261,7 @@ function setCurrentChallenge(challengeIndex) {
         if (playbackButtonsWrapper === lastPlaybackButtonsWrapper) {
           applyCurrentTtsSettingsToHowlSound(ttsType, challengeHowl);
           currentChallengeHowls[ttsType] = challengeHowl;
-          renderFormControls(ttsType);
+          renderFormControlPanel(ttsType);
         }
       };
 
@@ -295,7 +295,7 @@ function setCurrentChallenge(challengeIndex) {
               otherButton.classList.remove(CONTROLS_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAME);
             }
           } else if (toggleButton === otherButton) {
-            renderFormControls(ttsType);
+            renderFormControlPanel(ttsType);
             toggleElement(currentControlsForms[ttsType], true);
             toggleButton.classList.add(CONTROLS_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAME);
             hasActiveControls = true;

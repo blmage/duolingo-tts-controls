@@ -15,7 +15,7 @@ const TYPES = [
   TYPE_STOP,
 ];
 
-const Button = ({ type, disabled = false, onClick = noop }) => {
+const ControlButton = ({ type, disabled = false, onClick = noop }) => {
   const getElementClassNames = useStyles(CLASS_NAMES, [ type ]);
 
   return (
@@ -30,7 +30,7 @@ const Button = ({ type, disabled = false, onClick = noop }) => {
   )
 };
 
-export default Button;
+export default ControlButton;
 
 const WRAPPER = 'wrapper';
 const BUTTON = 'button';

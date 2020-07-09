@@ -14,7 +14,7 @@ const TYPES = [
   TYPE_VOLUME,
 ];
 
-const Slider =
+const ControlSlider =
   ({
      type,
      value = 1.0,
@@ -77,7 +77,7 @@ const Slider =
     );
   };
 
-export default Slider;
+export default ControlSlider;
 
 const WRAPPER = 'wrapper';
 const BUTTON = 'button';

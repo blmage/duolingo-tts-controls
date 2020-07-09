@@ -17,10 +17,10 @@ import {
   TTS_TYPE_NORMAL,
   useTtsRate,
   useTtsVolume,
-} from '../sounds';
+} from '../tts';
 
-import Button, * as buttons from './Button';
-import Slider, * as sliders from './Slider';
+import ControlButton, * as buttons from './ControlButton';
+import ControlSlider, * as sliders from './ControlSlider';
 
 /**
  * A throttled function for applying rate and volume settings to a "Howl" object in almost real-time.
@@ -29,7 +29,7 @@ import Slider, * as sliders from './Slider';
  */
 const applyPlaybackSettings = throttle(applyTtsSettingsToHowlSound(_, _, _), 50);
 
-const Controls = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
+const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
   const [ rate, setRate ] = useTtsRate(ttsType);
   const [ volume, setVolume ] = useTtsVolume(ttsType);
   const [ duration, setDuration ] = useState(0.0);
@@ -175,7 +175,7 @@ const Controls = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
   return (
     <div>
-      <Slider
+      <ControlSlider
         type={sliders.TYPE_RATE}
         value={rate}
         min={getTtsMinRate(ttsType)}
@@ -185,7 +185,7 @@ const Controls = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
         onChange={onRateChange}
         onChangeEnd={onRateChange}/>
 
-      <Slider
+      <ControlSlider
         type={sliders.TYPE_VOLUME}
         value={volume}
         min={getTtsMinVolume()}
@@ -195,7 +195,7 @@ const Controls = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
         onChange={onVolumeChange}
         onChangeEnd={onVolumeChange}/>
 
-      <Slider
+      <ControlSlider
         type={sliders.TYPE_POSITION}
         value={position}
         min={0.0}
@@ -210,23 +210,23 @@ const Controls = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
       <div className={getElementClassNames(BUTTONS_WRAPPER)}>
         {!isPlaying || isPaused
           ? (
-            <Button
+            <ControlButton
               type={buttons.TYPE_PLAY}
               disabled={!hasSound}
               onClick={play}/>
           ) : (
-            <Button
+            <ControlButton
               type={buttons.TYPE_PAUSE}
               disabled={!hasSound}
               onClick={pause}/>
           )}
 
-        <Button
+        <ControlButton
           type={buttons.TYPE_STOP}
           disabled={!hasSound || !isPlaying}
           onClick={stop}/>
 
-        <Button
+        <ControlButton
           type={buttons.TYPE_PIN}
           disabled={!hasSound}
           onClick={pinStart}/>
@@ -235,7 +235,7 @@ const Controls = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
   );
 };
 
-export default Controls;
+export default ControlPanel;
 
 const BUTTONS_WRAPPER = 'button_wrapper';
 
