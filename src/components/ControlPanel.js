@@ -66,10 +66,10 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
     onPositionChange(raw);
 
     if (howl && isPlaying) {
-      setWasPlaying(true);
+      setWasPlaying(!isPaused);
       howl.pause();
     }
-  }, [ howl, isPlaying, setWasPlaying, onPositionChange ]);
+  }, [ howl, isPlaying, isPaused, setWasPlaying, onPositionChange ]);
 
   const onPositionChangeEnd = useCallback(raw => {
     const position = onPositionChange(raw);
