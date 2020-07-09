@@ -57,11 +57,10 @@ function clampTtsRate(ttsType, rate) {
 }
 
 /**
- * @param {string} ttsType A TTS type.
  * @param {number} volume A playback volume.
  * @returns {number} A playback volume within the allowed range.
  */
-function clampTtsVolume(ttsType, volume) {
+function clampTtsVolume(volume) {
   return Math.max(getTtsMinVolume(), Math.min(volume, getTtsMaxVolume()));
 }
 
@@ -86,10 +85,8 @@ function getLocalStorageTtsVolumeKey(ttsType) {
  * @returns {number} The current playback rate for TTS sounds of the given type.
  */
 function getTtsRate(ttsType) {
-  return clampTtsRate(
-    ttsType,
-    Number(localStorage.getItem(getLocalStorageTtsRateKey(ttsType))) || 1.0
-  );
+  const rate = localStorage.getItem(getLocalStorageTtsRateKey(ttsType))
+  return clampTtsRate(ttsType, Number(rate) || 1.0);
 }
 
 /**
@@ -97,10 +94,8 @@ function getTtsRate(ttsType) {
  * @returns {number} The current playback volume for TTS sounds of the given type.
  */
 function getTtsVolume(ttsType) {
-  return clampTtsVolume(
-    ttsType,
-    Number(localStorage.getItem(getLocalStorageTtsVolumeKey(ttsType))) || 1.0
-  );
+  const volume = localStorage.getItem(getLocalStorageTtsVolumeKey(ttsType));
+  return clampTtsVolume(Number(volume) || 1.0);
 }
 
 /**
@@ -127,7 +122,7 @@ export const useTtsVolume = ttsType => {
   const [ state, setState ] = useState(getTtsVolume(ttsType));
 
   const setVolume = useCallback(volume => {
-    const updated = clampTtsVolume(ttsType, Number(volume) || 1.0);
+    const updated = clampTtsVolume(Number(volume) || 1.0);
     setState(updated);
     localStorage.setItem(getLocalStorageTtsVolumeKey(ttsType), String(updated));
   }, [ ttsType, setState ]);
@@ -143,9 +138,9 @@ export function getHowlPosition(howl) {
   if (howl.state() !== 'loaded') {
     return 0.0;
   }
-  
+
   const wasLocked = !!howl._playLock;
-  
+
   if (wasLocked) {
     // The "_playLock" flag is used by "howler.js" to prevent seeking a new position at the wrong moment.
     // The fact that it also serves as a short-circuit when we just want to read the current position seems wrong:
@@ -153,13 +148,13 @@ export function getHowlPosition(howl) {
     // See also this issue: https://github.com/goldfire/howler.js/issues/1189.
     howl._playLock = false;
   }
-  
+
   const position = Number(howl.seek());
-  
+
   if (wasLocked) {
     howl._playLock = true;
   }
-  
+
   return isNaN(position) ? 0.0 : position;
 }
 

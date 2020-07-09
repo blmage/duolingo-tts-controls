@@ -160,11 +160,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
   // Regularly refresh the position when the sound is being played.
   useInterval(() => {
-    if (howl) {
-      // Double check to make sure we never set an invalid position.
-      const position = getHowlPosition(howl);
-      (null !== position) && setPosition(position);
-    }
+      howl && setPosition(getHowlPosition(howl));
   }, isPlaying && !isPaused ? 75 : null);
 
   const hasSound = isObject(howl);
