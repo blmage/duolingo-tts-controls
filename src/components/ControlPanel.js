@@ -160,7 +160,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
   // Regularly refresh the position when the sound is being played.
   useInterval(() => {
-      howl && setPosition(getHowlPosition(howl));
+    howl && setPosition(getHowlPosition(howl));
   }, isPlaying && !isPaused ? 75 : null);
 
   const hasSound = isObject(howl);
@@ -179,7 +179,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
         step={0.1}
         hint={`${rate}x`}
         onChange={onRateChange}
-        onChangeEnd={onRateChange}/>
+        onChangeEnd={onRateChange} />
 
       <ControlSlider
         type={sliders.TYPE_VOLUME}
@@ -189,7 +189,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
         step={0.1}
         hint={`${Math.round(volume * 100.0)}%`}
         onChange={onVolumeChange}
-        onChangeEnd={onVolumeChange}/>
+        onChangeEnd={onVolumeChange} />
 
       <ControlSlider
         type={sliders.TYPE_POSITION}
@@ -201,7 +201,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
         disabled={!hasSound}
         onChangeStart={onPositionChangeStart}
         onChange={onPositionChange}
-        onChangeEnd={onPositionChangeEnd}/>
+        onChangeEnd={onPositionChangeEnd} />
 
       <div className={getElementClassNames(BUTTONS_WRAPPER)}>
         {!isPlaying || isPaused
@@ -209,23 +209,23 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
             <ControlButton
               type={buttons.TYPE_PLAY}
               disabled={!hasSound}
-              onClick={play}/>
+              onClick={play} />
           ) : (
             <ControlButton
               type={buttons.TYPE_PAUSE}
               disabled={!hasSound}
-              onClick={pause}/>
+              onClick={pause} />
           )}
 
         <ControlButton
           type={buttons.TYPE_STOP}
           disabled={!hasSound || !isPlaying}
-          onClick={stop}/>
+          onClick={stop} />
 
         <ControlButton
           type={buttons.TYPE_PIN}
           disabled={!hasSound}
-          onClick={pinStart}/>
+          onClick={pinStart} />
       </div>
     </div>
   );

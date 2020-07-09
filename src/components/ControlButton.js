@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { noop } from '../functions';
-import { BASE, useStyles } from './index';
 import { EXTENSION_PREFIX } from '../constants';
+import { BASE, useStyles } from './index';
 
 export const TYPE_PAUSE = 'pause';
 export const TYPE_PIN = 'pin';

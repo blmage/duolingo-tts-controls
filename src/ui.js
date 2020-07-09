@@ -193,7 +193,7 @@ function renderFormControlPanel(ttsType) {
       <ControlPanel
         key={`control-panel-${ttsType}`}
         ttsType={ttsType}
-        howl={currentChallengeHowls[ttsType]}/>,
+        howl={currentChallengeHowls[ttsType]} />,
       currentControlsForms[ttsType]
     );
   }
