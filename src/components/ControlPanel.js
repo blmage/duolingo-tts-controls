@@ -170,7 +170,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
     : `${position.toFixed(1)}s / ${duration.toFixed(1)}s`;
 
   return (
-    <div>
+    <div className={getElementClassNames(WRAPPER)}>
       <ControlSlider
         type={sliders.TYPE_RATE}
         value={rate}
@@ -233,10 +233,12 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
 export default ControlPanel;
 
+const WRAPPER = 'wrapper';
 const BUTTONS_WRAPPER = 'button_wrapper';
 
 const CLASS_NAMES = {
   [BASE]: {
+    [WRAPPER]: [ `${EXTENSION_PREFIX}controls-panel` ],
     [BUTTONS_WRAPPER]: [
       // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
       // The class responsible for the null height is ignored here.

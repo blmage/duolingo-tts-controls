@@ -28,3 +28,27 @@ export const LISTENING_CHALLENGE_TYPES = [
  * @type {RegExp}
  */
 export const NEW_SESSION_URL_REGEXP = /\/[\d]{4}-[\d]{2}-[\d]{2}\/sessions/g;
+
+/**
+ * The style of listening challenge forms featuring basic playback buttons.
+ *
+ * @type {string}
+ */
+export const FORM_STYLE_BASIC = 'basic';
+
+/**
+ * The style of listening challenge forms featuring a cartoon character and playback buttons inside a speech bubble.
+ *
+ * @type {string}
+ */
+export const FORM_STYLE_CARTOON = 'cartoon';
+
+/**
+ * The different styles of listening challenge forms.
+ *
+ * @type {string[]}
+ */
+export const FORM_STYLES = [
+  FORM_STYLE_BASIC,
+  FORM_STYLE_CARTOON,
+];
