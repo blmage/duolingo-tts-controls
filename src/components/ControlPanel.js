@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useInterval, useUnmount } from 'preact-use';
 import { _ } from 'param.macro';
 import throttle from 'lodash.throttle';
@@ -129,15 +129,19 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
     }
   }, [ howl, setDuration, setPosition, setIsPlaying, setIsPaused ])
 
+  const isResettingSound = useRef(false);
+
+  const onStop = useCallback(function () {
+    if (!isResettingSound.current) {
+      setPosition(startPosition);
+      setIsPlaying(false);
+      this.seek(startPosition);
+    }
+  }, [ startPosition, setPosition, setIsPlaying, isResettingSound ]);
+
   // Register the listeners that depend on the pinned start position.
   useEffect(() => {
     if (howl) {
-      const onStop = () => {
-        setPosition(startPosition);
-        setIsPlaying(false);
-        howl.seek(startPosition);
-      }
-
       howl.on('end', onStop);
       howl.on('stop', onStop);
 
@@ -146,15 +150,14 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
         howl.off('stop', onStop);
       };
     }
-  }, [ howl, startPosition, setPosition, setIsPlaying ]);
+  }, [ howl, onStop ]);
 
   // Reset the position of the sound in case it might be used again later (if the user gave a wrong answer, eg).
   useUnmount(() => {
     if (howl) {
+      isResettingSound.current = true;
       howl.stop();
       howl.seek(0);
-      // Double check in case the call above didn't have any effect (which may happen on rare cases).
-      howl.once('play', () => howl.seek(0));
     }
   });
 
