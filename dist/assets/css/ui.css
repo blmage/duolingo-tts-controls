@@ -96,6 +96,7 @@
     transform: translate(-50%, 80%);
     font-size: 15px;
     font-weight: bold;
+    user-select: none;
 }
 
 ._duo-ttsc_slider-input {
