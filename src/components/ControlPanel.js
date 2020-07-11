@@ -74,7 +74,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
     const position = getValidPosition(raw);
     (null !== position) && setUserPosition(position);
     return position;
-  }, [ getValidPosition, setPosition ]);
+  }, [ getValidPosition, setUserPosition ]);
 
   const onPositionChangeStart = useCallback(raw => {
     onPositionChange(raw);
@@ -153,7 +153,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
       setPlayPosition(newPosition);
       this.seek(newPosition);
     }
-  }, [ startPosition, setIsPlaying, userPosition, setUserPosition, isResettingSound ]);
+  }, [ startPosition, setIsPlaying, userPosition, setPlayPosition, isResettingSound ]);
 
   // Register the listeners that depend on the pinned start position.
   useEffect(() => {
