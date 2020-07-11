@@ -268,7 +268,9 @@ function setCurrentChallenge(challengeIndex) {
 
     lastPlaybackButtonsWrapper = playbackButtonsWrapper;
 
-    if (!playbackButtonsWrapper) {
+    // Check for translation hints, because listening and translation challenges can share TTS sounds,
+    // and their DOM structures look alike (especially in the case of "cartoon" forms).
+    if (!playbackButtonsWrapper || document.querySelector(TRANSLATION_CHALLENGE_HINT_SELECTOR)) {
       return;
     }
 
@@ -495,6 +497,7 @@ const CONTROL_FORM_BASE_CLASS_NAMES = [
 ];
 
 /**
+ * A CSS selector for the hints displayed under words in the translation challenges.
  *
  * @type {string}
  */
