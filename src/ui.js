@@ -183,11 +183,11 @@ let lastPlaybackButtonsWrapper = null;
 let currentChallengeHowls = {};
 
 /**
- * The controls forms for the current challenge, sorted by TTS type.
+ * The control forms for the current challenge, sorted by TTS type.
  *
  * @type {object.<string, Element>}
  */
-let currentControlsForms = {};
+let currentControlForms = {};
 
 /**
  * Finds the form elements of a given type in the given parent element (or document body),
@@ -217,35 +217,35 @@ function findAndMarkFormElements(elementType, formStyle, parent = document.body)
  * @param {string} ttsType A TTS type.
  */
 function renderFormControlPanel(ttsType) {
-  if (currentControlsForms[ttsType] && currentControlsForms[ttsType].isConnected) {
+  if (currentControlForms[ttsType] && currentControlForms[ttsType].isConnected) {
     render(
       <ControlPanel
         key={`control-panel-${ttsType}`}
         ttsType={ttsType}
         howl={currentChallengeHowls[ttsType]} />,
-      currentControlsForms[ttsType]
+      currentControlForms[ttsType]
     );
   }
 }
 
 /**
- * Cleans up the controls form by unmounting the underlying panels.
+ * Cleans up the control forms by unmounting the underlying panels.
  * This allows to make sure that all the corresponding lifecycle events have been called.
  *
  * @param {boolean} force Whether to force the cleanup, even if the forms are still present in the DOM.
  */
-function cleanUpControlsForms(force = false) {
-  Object.entries(currentControlsForms)
+function cleanUpControlForms(force = false) {
+  Object.entries(currentControlForms)
     .forEach(([ type, form ]) => {
       if (force || !form.isConnected) {
         render('', form);
-        delete currentControlsForms[type];
+        delete currentControlForms[type];
       }
     });
 }
 
-// Regularly clean up the obsolete controls forms.
-setInterval(() => cleanUpControlsForms(), 50);
+// Regularly clean up the obsolete control forms.
+setInterval(() => cleanUpControlForms(), 50);
 
 /**
  * Sets the new current challenge, prepares the UI and new current TTS data if an actual change took place.
@@ -263,7 +263,7 @@ function setCurrentChallenge(challengeIndex) {
   if (playbackButtonsWrapper !== lastPlaybackButtonsWrapper) {
     // Always force unmounting the previous control panels when a change occurred,
     // to ensure that all the necessary cleanup has been done (such as resetting the TTS sounds).
-    cleanUpControlsForms(true);
+    cleanUpControlForms(true);
 
     lastPlaybackButtonsWrapper = playbackButtonsWrapper;
 
@@ -291,22 +291,22 @@ function setCurrentChallenge(challengeIndex) {
 
     const toggleButtons = {};
 
-    // Create a controls form and a toggle button for each available TTS playback button.
+    // Create a control form and a toggle button for each available TTS playback button.
     playbackButtons.forEach(playbackButton => {
       const ttsType = playbackButton.matches(ELEMENT_SELECTORS[SLOW_PLAYBACK_BUTTON][formStyle])
         ? TTS_TYPE_SLOW
         : TTS_TYPE_NORMAL;
 
-      const controlsForm = document.createElement('div');
-      controlsForm.classList.add(CONTROLS_FORM_BASE_CLASS_NAME);
-      controlsForm.style.display = 'none';
-      playbackForm.append(controlsForm);
+      const controlForm = document.createElement('div');
+      controlForm.classList.add(CONTROL_FORM_BASE_CLASS_NAME);
+      controlForm.style.display = 'none';
+      playbackForm.append(controlForm);
 
-      currentControlsForms[ttsType] = controlsForm;
+      currentControlForms[ttsType] = controlForm;
 
       const toggleButton = document.createElement('button');
-      toggleButton.classList.add(CONTROLS_FORM_TOGGLE_BUTTON_BASE_CLASS_NAME);
-      toggleButton.classList.add(...CONTROLS_FORM_TOGGLE_BUTTON_CLASS_NAMES[formStyle]);
+      toggleButton.classList.add(CONTROL_FORM_TOGGLE_BUTTON_BASE_CLASS_NAME);
+      toggleButton.classList.add(...CONTROL_FORM_TOGGLE_BUTTON_CLASS_NAMES[formStyle]);
       playbackButton.after(toggleButton);
 
       toggleButtons[ttsType] = toggleButton;
@@ -343,25 +343,25 @@ function setCurrentChallenge(challengeIndex) {
       toggleButton.addEventListener('click', event => {
         discardEvent(event);
 
-        if (!currentControlsForms[ttsType] || !currentControlsForms[ttsType].isConnected) {
+        if (!currentControlForms[ttsType] || !currentControlForms[ttsType].isConnected) {
           return;
         }
 
         let hasActiveControls = false;
 
-        // Adapt the state of each toggle button and controls form as necessary.
+        // Adapt the state of each toggle button and control form as necessary.
         toggleButtonEntries.forEach(([ otherType, otherButton ]) => {
           const isActive = otherButton.classList.contains(HAS_ACTIVE_CONTROLS_CLASS_NAME);
 
           if (isActive) {
-            if (currentControlsForms[otherType]) {
-              toggleElement(currentControlsForms[otherType], false);
-              otherButton.classList.remove(...CONTROLS_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES[formStyle]);
+            if (currentControlForms[otherType]) {
+              toggleElement(currentControlForms[otherType], false);
+              otherButton.classList.remove(...CONTROL_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES[formStyle]);
             }
           } else if (toggleButton === otherButton) {
             renderFormControlPanel(ttsType);
-            toggleElement(currentControlsForms[ttsType], true);
-            otherButton.classList.add(...CONTROLS_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES[formStyle]);
+            toggleElement(currentControlForms[ttsType], true);
+            otherButton.classList.add(...CONTROL_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES[formStyle]);
             hasActiveControls = true;
           }
         });
@@ -433,7 +433,7 @@ const ELEMENT_SELECTORS = {
     [FORM_STYLE_BASIC]: LISTENING_CHALLENGE_TYPES.map(`[data-test*="challenge-${it}"] > *:first-child`),
     [FORM_STYLE_CARTOON]: LISTENING_CHALLENGE_TYPES.map(`[data-test*="challenge-${it}"] > *:first-child`),
   },
-  // The controls forms will be appended to those elements.
+  // The control forms will be appended to those elements.
   [PLAYBACK_FORM]: {
     [FORM_STYLE_BASIC]: '._3msZN',
     [FORM_STYLE_CARTOON]: '.esH1e',
@@ -462,26 +462,26 @@ const ELEMENT_SELECTORS = {
 }
 
 /**
- * The base class name applied to the controls forms.
+ * The base class name applied to the control forms.
  *
  * @type {string}
  */
-const CONTROLS_FORM_BASE_CLASS_NAME = `${EXTENSION_PREFIX}controls-form`;
+const CONTROL_FORM_BASE_CLASS_NAME = `${EXTENSION_PREFIX}controls-form`;
 
 /**
- * The base class name applied to the toggle buttons for the controls forms.
+ * The base class name applied to the toggle buttons for the control forms.
  *
  * @type {string}
  */
-const CONTROLS_FORM_TOGGLE_BUTTON_BASE_CLASS_NAME = `${EXTENSION_PREFIX}controls-form-toggle-button`;
+const CONTROL_FORM_TOGGLE_BUTTON_BASE_CLASS_NAME = `${EXTENSION_PREFIX}control-form-toggle-button`;
 
 /**
- * The sets of class names used by the toggle buttons for the controls forms, sorted by form style.
+ * The sets of class names used by the toggle buttons for the control forms, sorted by form style.
  * Copied from the original playback buttons, ignoring the class names that set dimensions.
  *
  * @type {object.<string, string[]>}
  */
-const CONTROLS_FORM_TOGGLE_BUTTON_CLASS_NAMES = {
+const CONTROL_FORM_TOGGLE_BUTTON_CLASS_NAMES = {
   [FORM_STYLE_BASIC]: [
     '_2dIjg',
     'XepLJ',
@@ -513,7 +513,7 @@ const CONTROLS_FORM_TOGGLE_BUTTON_CLASS_NAMES = {
  *
  * @type {object.<string, string[]>}
  */
-const CONTROLS_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES = {
+const CONTROL_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES = {
   [FORM_STYLE_BASIC]: [
     HAS_ACTIVE_CONTROLS_CLASS_NAME,
   ],

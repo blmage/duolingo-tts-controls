@@ -1,6 +1,6 @@
 /* Global styles */
 
-._duo-ttsc_controls-form-toggle-button::before,
+._duo-ttsc_control-form-toggle-button::before,
 ._duo-ttsc_slider ._duo-ttsc_slider-button,
 ._duo-ttsc_control-button-icon {
     mask-position: 50% 50%;
@@ -11,13 +11,13 @@
     -webkit-mask-size: contain;
 }
 
-._duo-ttsc_controls-form-toggle-button {
+._duo-ttsc_control-form-toggle-button {
     width: 32px;
     height: 32px;
     margin: 10px 0 0;
 }
 
-._duo-ttsc_controls-form-toggle-button::before {
+._duo-ttsc_control-form-toggle-button::before {
     display: block;
     content: "";
     position: absolute;
@@ -137,7 +137,7 @@
     box-sizing: border-box;
 }
 
-._duo-ttsc_controls-buttons {
+._duo-ttsc_control-buttons {
     display: block !important;
     margin: 30px 0 0 !important;
     text-align: center !important;
@@ -187,7 +187,7 @@
     flex-direction: column;
 }
 
-._duo-ttsc_challenge-form_basic ._duo-ttsc_controls-form-toggle-button._duo-ttsc_with-active-controls::before {
+._duo-ttsc_challenge-form_basic ._duo-ttsc_control-form-toggle-button._duo-ttsc_with-active-controls::before {
     mask-image: url(../images/close.svg);
     -webkit-mask-image: url(../images/close.svg);
 }
@@ -198,7 +198,7 @@
     position: relative;
 }
 
-._duo-ttsc_playback-form_cartoon ._duo-ttsc_controls-form-toggle-button {
+._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form-toggle-button {
     position: absolute;
     left: 50%;
     top: 100%;
@@ -206,7 +206,7 @@
     transform: translate(-50%, 0);
 }
 
-._duo-ttsc_playback-button-wrapper_cartoon ._duo-ttsc_controls-form-toggle-button::before {
+._duo-ttsc_playback-button-wrapper_cartoon ._duo-ttsc_control-form-toggle-button::before {
     left: 22%;
     right: 22%;
     top: 22%;
@@ -219,13 +219,13 @@
         position: relative;
     }
 
-    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_controls-form {
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form {
         position: relative;
         flex: 1;
         align-self: flex-end;
     }
 
-    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_controls-panel {
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-panel {
         position: absolute;
         left: 50%;
         bottom: 12px;
@@ -237,7 +237,7 @@
 
 @media (max-width: 699px) {
     ._duo-ttsc_playback-form_cartoon {
-        /* Make some room for the controls panel. */
+        /* Make some room for the control panel. */
         padding-top: 15px;
     }
 }
@@ -251,13 +251,13 @@
         order: 1;
     }
 
-    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_controls-form {
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form {
         width: 100%;
         order: 0;
         text-align: center;
     }
 
-    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_controls-panel {
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-panel {
         display: inline-flex;
         flex-direction: column;
     }

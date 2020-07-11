@@ -261,12 +261,12 @@ const BUTTONS_WRAPPER = 'button_wrapper';
 
 const CLASS_NAMES = {
   [BASE]: {
-    [WRAPPER]: [ `${EXTENSION_PREFIX}controls-panel` ],
+    [WRAPPER]: [ `${EXTENSION_PREFIX}control-panel` ],
     [BUTTONS_WRAPPER]: [
       // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
       // The class responsible for the null height is ignored here.
       '_2mM1T',
-      `${EXTENSION_PREFIX}controls-buttons`,
+      `${EXTENSION_PREFIX}control-buttons`,
     ],
   },
 };
