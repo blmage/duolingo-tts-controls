@@ -268,14 +268,19 @@ function setCurrentChallenge(challengeIndex) {
 
     lastPlaybackButtonsWrapper = playbackButtonsWrapper;
 
-    // Check for translation hints, because listening and translation challenges can share TTS sounds,
-    // and their DOM structures look alike (especially in the case of "cartoon" forms).
-    if (!playbackButtonsWrapper || document.querySelector(TRANSLATION_CHALLENGE_HINT_SELECTOR)) {
-      return;
+    if (!playbackButtonsWrapper) {
+      return
     }
 
     // Find and mark all the required original UI elements.
     const [ challengeForm ] = findAndMarkFormElements(CHALLENGE_FORM, formStyle);
+
+    // Check for translation hints, because listening and translation challenges can share TTS sounds,
+    // and their DOM structures look alike (especially in the case of "cartoon" forms).
+    if (!challengeForm || challengeForm.querySelector(TRANSLATION_CHALLENGE_HINT_SELECTOR)) {
+      return;
+    }
+
     const [ playbackForm ] = findAndMarkFormElements(PLAYBACK_FORM, formStyle, challengeForm);
 
     const playbackButtonWrappers = findAndMarkFormElements(
@@ -288,7 +293,7 @@ function setCurrentChallenge(challengeIndex) {
       findAndMarkFormElements(PLAYBACK_BUTTON, formStyle, _)
     );
 
-    if (!challengeForm || !playbackForm || (0 === playbackButtons.length)) {
+    if (!playbackForm || (0 === playbackButtons.length)) {
       return;
     }
 
