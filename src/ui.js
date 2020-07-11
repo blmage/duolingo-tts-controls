@@ -358,7 +358,7 @@ function setCurrentChallenge(challengeIndex) {
       render(
         <ToggleButton
           formStyle={formStyle}
-          onClick={() => onToggleButtonClick(ttsType)}/>,
+          onClick={() => onToggleButtonClick(ttsType)} />,
         container,
         placeholder
       );

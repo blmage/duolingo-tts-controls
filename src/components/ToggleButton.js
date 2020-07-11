@@ -8,7 +8,7 @@ const ToggleButton = ({ formStyle = FORM_STYLE_BASIC, active = false, onClick = 
 
   const buttonState = active ? BUTTON__ACTIVE : BUTTON__INACTIVE;
 
-  return (<button onClick={onClick} className={getElementClassNames([ BUTTON, buttonState ])}/>)
+  return (<button onClick={onClick} className={getElementClassNames([ BUTTON, buttonState ])} />)
 };
 
 export default ToggleButton;
