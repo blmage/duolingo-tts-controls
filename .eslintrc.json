@@ -28,7 +28,8 @@
     },
     "settings": {
         "jsdoc": {
-            "mode": "typescript"
+            "mode": "typescript",
+            "ignorePrivate": true
         }
     }
 }
