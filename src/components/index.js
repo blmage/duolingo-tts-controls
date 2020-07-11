@@ -10,7 +10,7 @@ import { isArray } from '../functions';
 export const BASE = Symbol('base');
 
 /**
- * A hook for getting all the class names of an element based on the current state of its parent component.
+ * A hook for getting all the class names of an element based on the current state/context of its parent component.
  *
  * @param {object} classNames Some nested maps from state and element keys to class names.
  * @param {(string|symbol)[]} stateKeys A list of keys describing the current state of the component.

@@ -187,7 +187,7 @@
     flex-direction: column;
 }
 
-._duo-ttsc_challenge-form_basic ._duo-ttsc_control-form-toggle-button._duo-ttsc_with-active-controls::before {
+._duo-ttsc_challenge-form_basic ._duo-ttsc_control-form-toggle-button_active::before {
     mask-image: url(../images/close.svg);
     -webkit-mask-image: url(../images/close.svg);
 }
@@ -276,6 +276,6 @@
         top: auto;
         bottom: 100%;
         margin-top: 0;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 }

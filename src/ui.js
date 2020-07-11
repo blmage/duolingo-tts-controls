@@ -1,6 +1,6 @@
 import { h, render } from 'preact';
 import { _, it } from 'param.macro';
-import { discardEvent, isArray, isObject, logError, toggleElement } from './functions';
+import { isArray, isObject, logError, toggleElement } from './functions';
 import { applyCurrentTtsSettingsToHowlSound, TTS_TYPE_NORMAL, TTS_TYPE_SLOW } from './tts';
 
 import {
@@ -12,6 +12,7 @@ import {
 } from './constants';
 
 import ControlPanel from './components/ControlPanel';
+import ToggleButton from './components/ToggleButton';
 
 /**
  * A TTS sound from a practice challenge.
@@ -289,9 +290,53 @@ function setCurrentChallenge(challengeIndex) {
       return;
     }
 
+    // Create a control form and a toggle button for each available TTS playback button.
     const toggleButtons = {};
 
-    // Create a control form and a toggle button for each available TTS playback button.
+    const refreshToggleButton = toggleButton => {
+      render(
+        <ToggleButton
+          formStyle={formStyle}
+          active={toggleButton.isActive}
+          onClick={() => onToggleButtonClick(toggleButton.ttsType)} />,
+        toggleButton.element.parentElement,
+        toggleButton.element
+      );
+    };
+
+    const onToggleButtonClick = ttsType => {
+      if (
+        !toggleButtons[ttsType]
+        || !currentControlForms[ttsType]
+        || !currentControlForms[ttsType].isConnected
+      ) {
+        return;
+      }
+
+      let hasActiveControls = false;
+      const toggleButton = toggleButtons[ttsType];
+
+      // Adapt the state of each toggle button and control form as necessary.
+      Object.entries(toggleButtons).forEach(([ otherType, otherButton ]) => {
+        if (otherButton.isActive) {
+          if (currentControlForms[otherType]) {
+            otherButton.isActive = false;
+            refreshToggleButton(otherButton);
+            toggleElement(currentControlForms[otherType], false);
+          }
+        } else if (toggleButton === otherButton) {
+          otherButton.isActive = true;
+          renderFormControlPanel(ttsType);
+          refreshToggleButton(toggleButton);
+          toggleElement(currentControlForms[ttsType], true);
+          hasActiveControls = true;
+        }
+      });
+
+      // Mark the challenge form so that we can adapt it to not lose any usability.
+      challengeForm.classList.toggle(HAS_ACTIVE_CONTROLS_CLASS_NAME, hasActiveControls);
+    };
+
     playbackButtons.forEach(playbackButton => {
       const ttsType = playbackButton.matches(ELEMENT_SELECTORS[SLOW_PLAYBACK_BUTTON][formStyle])
         ? TTS_TYPE_SLOW
@@ -304,12 +349,23 @@ function setCurrentChallenge(challengeIndex) {
 
       currentControlForms[ttsType] = controlForm;
 
-      const toggleButton = document.createElement('button');
-      toggleButton.classList.add(CONTROL_FORM_TOGGLE_BUTTON_BASE_CLASS_NAME);
-      toggleButton.classList.add(...CONTROL_FORM_TOGGLE_BUTTON_CLASS_NAMES[formStyle]);
-      playbackButton.after(toggleButton);
+      const container = playbackButton.parentElement;
+      const placeholder = document.createElement('div');
+      container.appendChild(placeholder);
 
-      toggleButtons[ttsType] = toggleButton;
+      render(
+        <ToggleButton
+          formStyle={formStyle}
+          onClick={() => onToggleButtonClick(ttsType)}/>,
+        container,
+        placeholder
+      );
+
+      toggleButtons[ttsType] = {
+        ttsType,
+        isActive: false,
+        element: container.lastElementChild,
+      };
     });
 
     // Register the new current "Howl" objects once they are loaded, and apply the current playback settings on them.
@@ -334,41 +390,6 @@ function setCurrentChallenge(challengeIndex) {
       } else {
         challengeHowl.once('load', onHowlLoaded);
       }
-    });
-
-    // Wire the form toggling effects for each button.
-    const toggleButtonEntries = Object.entries(toggleButtons);
-
-    toggleButtonEntries.forEach(([ ttsType, toggleButton ]) => {
-      toggleButton.addEventListener('click', event => {
-        discardEvent(event);
-
-        if (!currentControlForms[ttsType] || !currentControlForms[ttsType].isConnected) {
-          return;
-        }
-
-        let hasActiveControls = false;
-
-        // Adapt the state of each toggle button and control form as necessary.
-        toggleButtonEntries.forEach(([ otherType, otherButton ]) => {
-          const isActive = otherButton.classList.contains(HAS_ACTIVE_CONTROLS_CLASS_NAME);
-
-          if (isActive) {
-            if (currentControlForms[otherType]) {
-              toggleElement(currentControlForms[otherType], false);
-              otherButton.classList.remove(...CONTROL_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES[formStyle]);
-            }
-          } else if (toggleButton === otherButton) {
-            renderFormControlPanel(ttsType);
-            toggleElement(currentControlForms[ttsType], true);
-            otherButton.classList.add(...CONTROL_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES[formStyle]);
-            hasActiveControls = true;
-          }
-        });
-
-        // Mark the challenge form so that we can adapt it to not lose any usability.
-        challengeForm.classList.toggle(HAS_ACTIVE_CONTROLS_CLASS_NAME, hasActiveControls);
-      });
     });
   }
 }
@@ -444,7 +465,7 @@ const ELEMENT_SELECTORS = {
     // The choice was not important here.
     [FORM_STYLE_CARTOON]: '._3D7BY',
   },
-  // The <button> elements which trigger playing the TTS sounds.
+  // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {
     [FORM_STYLE_BASIC]: '._3hUV6',
     [FORM_STYLE_CARTOON]: '._3hUV6',
@@ -474,57 +495,7 @@ const CONTROL_FORM_BASE_CLASS_NAMES = [
 ];
 
 /**
- * The base class name applied to the toggle buttons for the control forms.
  *
  * @type {string}
  */
-const CONTROL_FORM_TOGGLE_BUTTON_BASE_CLASS_NAME = `${EXTENSION_PREFIX}control-form-toggle-button`;
-
-/**
- * The sets of class names used by the toggle buttons for the control forms, sorted by form style.
- * Copied from the original playback buttons, ignoring the class names that set dimensions.
- *
- * @type {object.<string, string[]>}
- */
-const CONTROL_FORM_TOGGLE_BUTTON_CLASS_NAMES = {
-  [FORM_STYLE_BASIC]: [
-    '_2dIjg',
-    'XepLJ',
-    '_1bJB-',
-    'vy3TL',
-    '_3iIWE',
-    '_1Mkpg',
-    '_1Dtxl',
-    '_1sVAI',
-    'sweRn',
-    '_1BWZU',
-    '_2bW5I',
-    '_3ZpUo',
-    '_2odwU',
-  ],
-  [FORM_STYLE_CARTOON]: [
-    '_1kiAo',
-    '_3iIWE',
-    '_1Mkpg',
-    '_2bW5I',
-    '_1Dtxl',
-    // Copied by searching for the same color as the "Use keyboard" button, but without the hover and pointer styles.
-    'D9gQ7',
-  ],
-};
-
-/**
- * The sets of class names added to the active toggle buttons, sorted by form style.
- *
- * @type {object.<string, string[]>}
- */
-const CONTROL_FORM_TOGGLE_BUTTON_ACTIVE_CLASS_NAMES = {
-  [FORM_STYLE_BASIC]: [
-    HAS_ACTIVE_CONTROLS_CLASS_NAME,
-  ],
-  [FORM_STYLE_CARTOON]: [
-    HAS_ACTIVE_CONTROLS_CLASS_NAME,
-    // Copied by searching for the main link color without side effects.
-    '_1RcSv',
-  ],
-};
+const TRANSLATION_CHALLENGE_HINT_SELECTOR = '[data-test="hint-sentence"]';
