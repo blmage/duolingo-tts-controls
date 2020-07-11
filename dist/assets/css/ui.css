@@ -247,18 +247,35 @@
         flex-wrap: wrap;
     }
 
-    ._duo-ttsc_playback-form_cartoon > * {
-        order: 1;
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form {
+        position: relative;
+        width: 100%;
+        margin-bottom: 20px;
+        text-align: center;
     }
 
-    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form {
-        width: 100%;
-        order: 0;
-        text-align: center;
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form::after {
+        display: block;
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        border-top-width: 2px;
+        border-top-style: solid;
     }
 
     ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-panel {
         display: inline-flex;
         flex-direction: column;
+    }
+}
+
+@media (max-width: 399px) {
+    ._duo-ttsc_playback-form_cartoon ._duo-ttsc_control-form-toggle-button {
+        top: auto;
+        bottom: 100%;
+        margin-top: 0;
+        margin-bottom: 10px;
     }
 }

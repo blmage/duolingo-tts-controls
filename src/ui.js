@@ -298,7 +298,7 @@ function setCurrentChallenge(challengeIndex) {
         : TTS_TYPE_NORMAL;
 
       const controlForm = document.createElement('div');
-      controlForm.classList.add(CONTROL_FORM_BASE_CLASS_NAME);
+      controlForm.classList.add(...CONTROL_FORM_BASE_CLASS_NAMES);
       controlForm.style.display = 'none';
       playbackForm.append(controlForm);
 
@@ -462,11 +462,16 @@ const ELEMENT_SELECTORS = {
 }
 
 /**
- * The base class name applied to the control forms.
+ * The class names applied to the control forms.
  *
- * @type {string}
+ * @type {string[]}
  */
-const CONTROL_FORM_BASE_CLASS_NAME = `${EXTENSION_PREFIX}controls-form`;
+const CONTROL_FORM_BASE_CLASS_NAMES = [
+  `${EXTENSION_PREFIX}control-form`,
+  // Copied by searching for a gray border color applied to the ::after pseudo-element.
+  // This choice requires extra care for Darklingo++ (a dark border is preferable).
+  'RFxAM',
+];
 
 /**
  * The base class name applied to the toggle buttons for the control forms.
