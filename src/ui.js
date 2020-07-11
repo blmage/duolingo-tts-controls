@@ -430,8 +430,8 @@ const ELEMENT_SELECTORS = {
   // The child of the actual challenge form is currently preferred here,
   // because it applies dimensions we need to override.
   [CHALLENGE_FORM]: {
-    [FORM_STYLE_BASIC]: '[data-test*="challenge"] > *:first-child',
-    [FORM_STYLE_CARTOON]: '[data-test*="challenge"] > *:first-child',
+    [FORM_STYLE_BASIC]: LISTENING_CHALLENGE_TYPES.map(`[data-test*="challenge-${it}"] > *:first-child`),
+    [FORM_STYLE_CARTOON]: LISTENING_CHALLENGE_TYPES.map(`[data-test*="challenge-${it}"] > *:first-child`),
   },
   // The controls forms will be appended to those elements.
   [PLAYBACK_FORM]: {
