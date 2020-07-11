@@ -145,7 +145,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
       // The user position is used to provide a better behavior for the original play buttons,
       // which always stop the sounds prior to (re)playing them: when the last action was the user pausing the sound
       // or changing the position, start back from where we were rather than from the pinned position (or from zero).
-      const newPosition = (null === userPosition.current)
+      const newPosition = (null === userPosition.current) || (userPosition.current >= duration)
         ? startPosition
         : userPosition.current;
 
@@ -153,7 +153,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
       setPlayPosition(newPosition);
       this.seek(newPosition);
     }
-  }, [ startPosition, setIsPlaying, userPosition, setPlayPosition, isResettingSound ]);
+  }, [ duration, startPosition, setIsPlaying, userPosition, setPlayPosition, isResettingSound ]);
 
   // Register the listeners that depend on the pinned start position.
   useEffect(() => {
@@ -180,9 +180,16 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
   // Regularly refresh the position when the sound is being played.
   useInterval(() => {
-    if (howl) {
+    if (howl && howl.playing()) {
       const playPosition = getHowlPosition(howl);
-      (playPosition !== position) && setPlayPosition(playPosition);
+
+      if (
+        !isPaused
+        && (playPosition !== position)
+        && (playPosition !== userPosition.current)
+      ) {
+        setPlayPosition(playPosition);
+      }
     }
   }, isPlaying && !isPaused ? 75 : null);
 
