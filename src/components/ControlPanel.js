@@ -43,7 +43,7 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
   const getValidPosition = useCallback(raw => {
     const position = Math.round(Number(raw) * 10) / 10;
-    return !isNaN(position) && (position >= 0.0) && (position <= duration) ? position : null;
+    return isNaN(position) ? null : Math.max(0.0, Math.min(position, duration));
   }, [ duration ]);
 
   const onRateChange = useCallback(rate => {
