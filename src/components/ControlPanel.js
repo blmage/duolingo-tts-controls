@@ -38,8 +38,9 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
   const [ isPlaying, setIsPlaying ] = useState(false);
   const [ isPaused, setIsPaused ] = useState(false);
   const [ wasPlaying, setWasPlaying ] = useState(false);
-  // See the onStop() callback for the rationale behind this ref.
+  // See the onStop() callback for the rationale behind those refs.
   const userPosition = useRef(null);
+  const hasUserStopped = useRef(false);
 
   const getElementClassNames = useStyles(CLASS_NAMES);
 
@@ -97,7 +98,13 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
 
   const play = useCallback(() => howl && howl.play(), [ howl ]);
   const pause = useCallback(() => howl && howl.pause(), [ howl ]);
-  const stop = useCallback(() => howl && howl.stop(), [ howl ]);
+
+  const stop = useCallback(() => {
+    if (howl) {
+      hasUserStopped.current = true;
+      howl.stop()
+    }
+  }, [ howl ]);
 
   const pinStart = useCallback(() => {
     const start = getValidPosition(position);
@@ -145,15 +152,27 @@ const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
       // The user position is used to provide a better behavior for the original play buttons,
       // which always stop the sounds prior to (re)playing them: when the last action was the user pausing the sound
       // or changing the position, start back from where we were rather than from the pinned position (or from zero).
-      const newPosition = (null === userPosition.current) || (userPosition.current >= duration)
-        ? startPosition
-        : userPosition.current;
+      const newPosition =
+        hasUserStopped.current
+        || (null === userPosition.current)
+        || (userPosition.current >= duration)
+          ? startPosition
+          : userPosition.current;
 
+      hasUserStopped.current = false;
       setIsPlaying(false);
       setPlayPosition(newPosition);
       this.seek(newPosition);
     }
-  }, [ duration, startPosition, setIsPlaying, userPosition, setPlayPosition, isResettingSound ]);
+  }, [
+    duration,
+    startPosition,
+    setIsPlaying,
+    userPosition,
+    hasUserStopped,
+    setPlayPosition,
+    isResettingSound
+  ]);
 
   // Register the listeners that depend on the pinned start position.
   useEffect(() => {
