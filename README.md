@@ -26,19 +26,21 @@ A small browser extension providing **playback controls** for the **listening ch
 
 ### Features
 
-* Appends a controls button to each of the playback buttons in the listening challenges:
+* Appends a control button to each of the playback buttons in the listening challenges:
 
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_toggle_buttons.png" width="500" />
 
-* Clicking on a controls button opens the corresponding controls panel:
+  ------
 
-    * Normal TTS:
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_toggle_buttons_cartoon.png" width="500" />
 
-      <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_normal_controls_panel.png" width="300" />
+* Clicking on a control button opens the corresponding control panel:
 
-    * Slow TTS:
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_normal_controls_panel.png" width="300" />
 
-      <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_slow_controls_panel.png" width="300" />
+  ------
+
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_slow_controls_panel_cartoon.png" width="500" />
 
 * The available controls include:
   
@@ -53,6 +55,10 @@ A small browser extension providing **playback controls** for the **listening ch
   such as [Darklingo++](https://userstyles.org/styles/169205/darklingo):
 
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/dark_controls_panel.png" width="500" />
+
+  ------
+
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/dark_controls_panel_cartoon.png" width="500" />
 
 ### Keyboard shortcuts
 
