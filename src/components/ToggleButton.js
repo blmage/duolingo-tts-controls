@@ -8,7 +8,13 @@ const ToggleButton = ({ formStyle = FORM_STYLE_BASIC, active = false, onClick = 
 
   const buttonState = active ? BUTTON__ACTIVE : BUTTON__INACTIVE;
 
-  return (<button onClick={onClick} className={getElementClassNames([ BUTTON, buttonState ])} />)
+  return (
+    <button
+      onClick={onClick}
+      onKeyDown={event => event.preventDefault()}
+      onKeyUp={event => event.preventDefault()}
+      className={getElementClassNames([ BUTTON, buttonState ])} />
+  );
 };
 
 export default ToggleButton;
@@ -19,8 +25,12 @@ const BUTTON__INACTIVE = 'button__inactive';
 
 const CLASS_NAMES = {
   [BASE]: {
-    [BUTTON]: [ `${EXTENSION_PREFIX}control-form-toggle-button` ],
-    [BUTTON__ACTIVE]: [ `${EXTENSION_PREFIX}control-form-toggle-button_active` ],
+    [BUTTON]: [
+      `${EXTENSION_PREFIX}control-form-toggle-button`,
+    ],
+    [BUTTON__ACTIVE]: [
+      `${EXTENSION_PREFIX}control-form-toggle-button_active`,
+    ],
   },
   [FORM_STYLE_BASIC]: {
     // Copied from the original playback buttons, ignoring the class names that set dimensions.
@@ -41,7 +51,7 @@ const CLASS_NAMES = {
     ],
   },
   [FORM_STYLE_CARTOON]: {
-    // Copied from the original playback buttons, ignoring the class names that set dimensions.
+    // Copied from the original playback buttons, ignoring the class names that apply dimensions.
     [BUTTON]: [
       '_1kiAo',
       '_3iIWE',
@@ -49,13 +59,13 @@ const CLASS_NAMES = {
       '_2bW5I',
       '_1Dtxl',
     ],
-    // Copied by searching for the main link color without side effects.
+    // Copied by searching for the main link color, without side effects.
     // This choice requires extra care for Darklingo++ (the button color must change when it's active).
     [BUTTON__ACTIVE]: [
       '_2rA41',
     ],
     // Copied by searching for the same color as the "Use keyboard" / "Use Word Bank" button,
-    // but without the hover and pointer styles.
+    // without the hover and pointer styles.
     [BUTTON__INACTIVE]: [
       'D9gQ7',
     ],

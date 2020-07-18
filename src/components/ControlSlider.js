@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useCallback, useState } from 'preact/hooks';
+import { useCallback, useRef, useState } from 'preact/hooks';
 import { noop } from '../functions';
 import { EXTENSION_PREFIX } from '../constants';
 import { BASE, useStyles } from './index';
@@ -28,8 +28,7 @@ const ControlSlider =
      onChangeEnd = noop,
    }) => {
     const [ isChanging, setIsChanging ] = useState(false);
-
-    const getElementClassNames = useStyles(CLASS_NAMES, [ type ]);
+    const input = useRef(null);
 
     const onInput = useCallback(event => {
       const value = event.target.value;
@@ -40,12 +39,15 @@ const ControlSlider =
       } else {
         onChange(value);
       }
-    }, [ onChangeStart, onChange, isChanging, setIsChanging ]);
+    }, [ isChanging, setIsChanging, onChangeStart, onChange ]);
 
     const onLastInput = useCallback(event => {
       onChangeEnd(event.target.value);
       setIsChanging(false);
-    }, [ onChangeEnd, setIsChanging ]);
+      input.current && input.current.blur();
+    }, [ setIsChanging, onChangeEnd ]);
+
+    const getElementClassNames = useStyles(CLASS_NAMES, [ type ]);
 
     return (
       <div className={getElementClassNames(WRAPPER)}>
@@ -54,12 +56,15 @@ const ControlSlider =
           className={getElementClassNames([ BUTTON, MIN_BUTTON ])} />
 
         <input
+          ref={input}
           type="range"
           min={min}
           max={max}
           step={step}
           value={value}
           disabled={disabled}
+          // Prevent the original keyboard handling from interfering with our keyboard shortcuts.
+          onKeyDown={event => event.preventDefault()}
           onInput={onInput}
           onChange={onLastInput}
           className={getElementClassNames(INPUT)} />
@@ -88,14 +93,21 @@ const HINT = 'hint';
 
 const CLASS_NAMES = {
   [BASE]: {
-    [WRAPPER]: [ `${EXTENSION_PREFIX}slider` ],
+    [WRAPPER]: [
+      `${EXTENSION_PREFIX}slider`,
+    ],
     [BUTTON]: [
       // Copied from the "Use keyboard" / "Use word bank" button.
       '_104UW',
+      '_1a2L9',
       `${EXTENSION_PREFIX}slider-button`
     ],
-    [MIN_BUTTON]: [ `${EXTENSION_PREFIX}slider-min-button` ],
-    [MAX_BUTTON]: [ `${EXTENSION_PREFIX}slider-max-button` ],
+    [MIN_BUTTON]: [
+      `${EXTENSION_PREFIX}slider-min-button`,
+    ],
+    [MAX_BUTTON]: [
+      `${EXTENSION_PREFIX}slider-max-button`,
+    ],
     [INPUT]: [
       // Copied from the session progress bar.
       '_2iSv6',
@@ -104,7 +116,7 @@ const CLASS_NAMES = {
       `${EXTENSION_PREFIX}slider-input`,
     ],
     [HINT]: [
-      // Copied by searching for the same color as the button, but without the hover and pointer styles.
+      // Copied by searching for the same color as the button, without the hover and pointer styles.
       'D9gQ7',
       `${EXTENSION_PREFIX}slider-hint`,
     ],

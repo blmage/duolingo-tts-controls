@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'preact/hooks';
+import { useCallback } from 'preact/hooks';
+import { useStateRef } from 'preact-use';
 import { EXTENSION_PREFIX } from './constants';
 
 /**
@@ -14,6 +15,16 @@ export const TTS_TYPE_NORMAL = 'normal';
  * @type {string}
  */
 export const TTS_TYPE_SLOW = 'slow';
+
+/**
+ * The different TTS types.
+ *
+ * @type {string[]}
+ */
+export const TTS_TYPES = [
+  TTS_TYPE_NORMAL,
+  TTS_TYPE_SLOW,
+];
 
 /**
  * @param {string} ttsType A TTS type.
@@ -35,7 +46,7 @@ export function getTtsMaxRate(ttsType) {
  * @returns {number} The minimum allowed playback volume for any TTS sound.
  */
 export function getTtsMinVolume() {
-  return 0.1;
+  return 0.05;
 }
 
 /**
@@ -100,34 +111,38 @@ function getTtsVolume(ttsType) {
 
 /**
  * @param {string} ttsType A TTS type.
- * @returns {[*, Function]} An array holding the current rate and a function to update it.
+ * @returns {[number, { current: number }, Function]}
+ * An array holding the value of, a ref to, and a function to update the current rate.
  */
 export const useTtsRate = ttsType => {
-  const [ state, setState ] = useState(getTtsRate(ttsType));
+  const [ state, stateRef, setState ] = useStateRef(getTtsRate(ttsType));
 
-  const setRate = useCallback(rate => {
-    const updated = clampTtsRate(ttsType, Number(rate) || 1.0);
+  const setRate = useCallback(raw => {
+    const rate = Number(raw);
+    const updated = clampTtsRate(ttsType, isNaN(rate) ? 1.0 : rate);
     setState(updated);
     localStorage.setItem(getLocalStorageTtsRateKey(ttsType), String(updated));
   }, [ ttsType, setState ]);
 
-  return [ state, setRate ];
+  return [ state, stateRef, setRate ];
 };
 
 /**
  * @param {string} ttsType A TTS type.
- * @returns {[*, Function]} An array holding the current volume and a function to update it.
+ * @returns {[number, { current: number }, Function]}
+ * An array holding the value of, a ref to, and a function to update the current rate.
  */
 export const useTtsVolume = ttsType => {
-  const [ state, setState ] = useState(getTtsVolume(ttsType));
+  const [ state, stateRef, setState ] = useStateRef(getTtsVolume(ttsType));
 
-  const setVolume = useCallback(volume => {
-    const updated = clampTtsVolume(Number(volume) || 1.0);
+  const setVolume = useCallback(raw => {
+    const volume = Number(raw);
+    const updated = clampTtsVolume(isNaN(volume) ? 1.0 : volume);
     setState(updated);
     localStorage.setItem(getLocalStorageTtsVolumeKey(ttsType), String(updated));
   }, [ ttsType, setState ]);
 
-  return [ state, setVolume ];
+  return [ state, stateRef, setVolume ];
 };
 
 /**

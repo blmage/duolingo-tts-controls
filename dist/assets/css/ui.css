@@ -2,6 +2,7 @@
 
 ._duo-ttsc_control-form-toggle-button::before,
 ._duo-ttsc_slider ._duo-ttsc_slider-button,
+._duo-ttsc_control-panel_active ._duo-ttsc_control-buttons:after,
 ._duo-ttsc_control-button-icon {
     mask-position: 50% 50%;
     mask-repeat: no-repeat;
@@ -138,9 +139,27 @@
 }
 
 ._duo-ttsc_control-buttons {
+    position: relative;
     display: block !important;
     margin: 30px 0 0 !important;
     text-align: center !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    /* Only display the keyboard hint on devices for which a keyboard is likely available. */
+    ._duo-ttsc_control-panel_active ._duo-ttsc_control-buttons:after {
+        display: block;
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translate(0, -15px);
+        width: 24px;
+        height: 24px;
+        mask-image: url(../images/keyboard.svg);
+        -webkit-mask-image: url(../images/keyboard.svg);
+        background-color: currentColor;
+    }
 }
 
 ._duo-ttsc_control-button-icon {

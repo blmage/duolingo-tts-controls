@@ -1,11 +1,9 @@
 import { h } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { useInterval, useUnmount } from 'preact-use';
+import { useInterval, useKeyCi, useStateRef, useThrottledCallback, useUnmount } from 'preact-use';
 import { _ } from 'param.macro';
-import throttle from 'lodash.throttle';
-import { isObject } from '../functions';
-import { EXTENSION_PREFIX } from '../constants';
-import { BASE, useStyles } from './index';
+import { discardEvent, isObject } from '../functions';
+import { DIGIT_CHARS, EXTENSION_PREFIX, FORM_STYLE_BASIC } from '../constants';
 
 import {
   applyTtsSettingsToHowlSound,
@@ -19,275 +17,429 @@ import {
   useTtsVolume,
 } from '../tts';
 
+import { BASE, useStyles } from './index';
 import ControlButton, * as buttons from './ControlButton';
 import ControlSlider, * as sliders from './ControlSlider';
 
 /**
- * A throttled function for applying rate and volume settings to a "Howl" object in almost real-time.
  *
- * @type {Function}
+ * @type {number}
  */
-const applyPlaybackSettings = throttle(applyTtsSettingsToHowlSound(_, _, _), 50);
+const RATE_STEP = 0.1;
 
-const ControlPanel = ({ ttsType = TTS_TYPE_NORMAL, howl = null, }) => {
-  const [ rate, setRate ] = useTtsRate(ttsType);
-  const [ volume, setVolume ] = useTtsVolume(ttsType);
-  const [ duration, setDuration ] = useState(0.0);
-  const [ position, setPosition ] = useState(0.0);
-  const [ startPosition, setStartPosition ] = useState(0.0);
-  const [ isPlaying, setIsPlaying ] = useState(false);
-  const [ isPaused, setIsPaused ] = useState(false);
-  const [ wasPlaying, setWasPlaying ] = useState(false);
-  // See the onStop() callback for the rationale behind those refs.
-  const userPosition = useRef(null);
-  const hasUserStopped = useRef(false);
+/**
+ *
+ * @type {number}
+ */
+const VOLUME_STEP = 0.05;
 
-  const getElementClassNames = useStyles(CLASS_NAMES);
+/**
+ *
+ * @type {number}
+ */
+const POSITION_STEP = 0.1;
 
-  const getValidPosition = useCallback(raw => {
-    const position = Math.round(Number(raw) * 10) / 10;
-    return isNaN(position) ? null : Math.max(0.0, Math.min(position, duration));
-  }, [ duration ]);
+const ControlPanel =
+  ({
+     formStyle = FORM_STYLE_BASIC,
+     ttsType = TTS_TYPE_NORMAL,
+     active = false,
+     howl = null,
+   }) => {
+    const [ rate, rateRef, setRate ] = useTtsRate(ttsType);
+    const [ volume, volumeRef, setVolume ] = useTtsVolume(ttsType);
+    const [ duration, setDuration ] = useState(0.0);
+    const [ position, positionRef, setPosition ] = useStateRef(0.0);
+    const [ isPlaying, setIsPlaying ] = useState(false);
+    const [ isPaused, setIsPaused ] = useState(false);
+    const startPosition = useRef(0.0);
 
-  // Set the new current position when it originates from the sound playback.
-  const setPlayPosition = useCallback(position => {
-    setPosition(position);
-    userPosition.current = null;
-  }, [ setPosition, userPosition ]);
+    const isSeeking = useRef(false);
+    const wasPlaying = useRef(false);
+    const activeSeekActions = useRef(new Set());
 
-  // Set the new current position when it originates from a user action.
-  const setUserPosition = useCallback(position => {
-    setPosition(position);
-    userPosition.current = position;
-  }, [ setPosition, userPosition ]);
+    // See the onStop() callback for the rationale behind those refs.
+    const userPosition = useRef(null);
+    const hasUserStopped = useRef(false);
 
-  const onRateChange = useCallback(rate => {
-    setRate(rate);
-    howl && applyPlaybackSettings(rate, volume, howl);
-  }, [ howl, volume, setRate ]);
+    const applyPlaybackSettings = useThrottledCallback(
+      (howl, rate, volume) => howl && applyTtsSettingsToHowlSound(rate, volume, howl),
+      50,
+      howl
+    );
 
-  const onVolumeChange = useCallback(volume => {
-    setVolume(volume);
-    howl && applyPlaybackSettings(rate, volume, howl);
-  }, [ howl, rate, setVolume ]);
+    // Updates and reapplies the playback rate.
+    const onRateChange = useCallback(rate => {
+      setRate(rate);
+      applyPlaybackSettings(rate, volumeRef.current);
+    }, [ volumeRef, setRate, applyPlaybackSettings ]);
 
-  const onPositionChange = useCallback(raw => {
-    const position = getValidPosition(raw);
-    (null !== position) && setUserPosition(position);
-    return position;
-  }, [ getValidPosition, setUserPosition ]);
+    // Updates and reapplies the playback volume.
+    const onVolumeChange = useCallback(volume => {
+      setVolume(volume);
+      applyPlaybackSettings(rateRef.current, volume);
+    }, [ rateRef, setVolume, applyPlaybackSettings ]);
 
-  const onPositionChangeStart = useCallback(raw => {
-    onPositionChange(raw);
+    // Returns a valid position in the current sound, rounded to one decimal place.
+    const getValidPosition = useCallback(raw => {
+      const position = Math.round(Number(raw) * 10) / 10;
+      return isNaN(position) ? null : Math.max(0.0, Math.min(position, duration));
+    }, [ duration ]);
 
-    if (howl && isPlaying) {
-      setWasPlaying(!isPaused);
-      howl.pause();
-    }
-  }, [ howl, isPlaying, isPaused, setWasPlaying, onPositionChange ]);
+    // Sets the new sound position as if it originates from the sound playback.
+    const setPlayPosition = useCallback(position => {
+      setPosition(position);
+      userPosition.current = null;
+    }, [ setPosition, userPosition ]);
 
-  const onPositionChangeEnd = useCallback(raw => {
-    const position = onPositionChange(raw);
+    // Sets the new sound position as if it originates from a user action.
+    const setUserPosition = useCallback(position => {
+      setPosition(position);
+      userPosition.current = position;
+    }, [ setPosition, userPosition ]);
 
-    if (howl) {
-      (null !== position) && howl.seek(position);
-      wasPlaying && howl.play();
-      setWasPlaying(false);
-    }
-  }, [ howl, wasPlaying, setWasPlaying, onPositionChange ]);
+    // Sets and applies the new sound position.
+    const onSeek = useCallback(raw => {
+      const position = getValidPosition(raw);
 
-  const play = useCallback(() => howl && howl.play(), [ howl ]);
-  const pause = useCallback(() => howl && howl.pause(), [ howl ]);
-
-  const stop = useCallback(() => {
-    if (howl) {
-      hasUserStopped.current = true;
-      howl.stop()
-    }
-  }, [ howl ]);
-
-  const pinStart = useCallback(() => {
-    const start = getValidPosition(position);
-    (null !== start) && setStartPosition(start);
-  }, [ position, getValidPosition, setStartPosition ]);
-
-  // Re-initialize the sound data when the "Howl" object becomes available or changes.
-  // Register dependency-less listeners.
-  useEffect(() => {
-    if (howl) {
-      const isPlaying = howl.playing();
-      const position = getHowlPosition(howl);
-
-      setDuration(howl.duration());
-      setPlayPosition(position || 0.0);
-      setIsPlaying(isPlaying);
-      setIsPaused(!isPlaying && (position > 0.0));
-
-      const onPlay = () => {
-        setIsPlaying(true);
-        setIsPaused(false);
+      if (null !== position) {
+        setUserPosition(position);
+        howl && !isSeeking.current && howl.seek(position);
       }
 
-      const onPause = () => {
-        setIsPaused(true);
-        userPosition.current = getHowlPosition(howl);
-      };
+      return position;
+    }, [ howl, isSeeking, getValidPosition, setUserPosition ]);
 
-      howl.on('play', onPlay);
-      howl.on('pause', onPause);
+    // Handles the start of a long-running seek action.
+    const onLongSeekStart = useCallback((action, raw) => {
+      activeSeekActions.current.add(action);
+      isSeeking.current = true;
+      onSeek(raw);
 
-      return () => {
-        if (howl) {
-          howl.off('play', onPlay);
-          howl.off('pause', onPause);
+      if (1 === activeSeekActions.current.size) {
+        if (howl && isPlaying) {
+          wasPlaying.current = !isPaused;
+          howl.pause();
+        } else {
+          wasPlaying.current = false;
         }
-      };
-    }
-  }, [ howl, setDuration, setPlayPosition, setIsPlaying, setIsPaused, userPosition ])
+      }
+    }, [ howl, isPlaying, isPaused, isSeeking, wasPlaying, activeSeekActions, onSeek ]);
 
-  const isResettingSound = useRef(false);
+    // Handles the end of a long-running seek action.
+    const onLongSeekEnd = useCallback((action, raw) => {
+      activeSeekActions.current.delete(action);
+      const position = onSeek(raw);
 
-  const onStop = useCallback(function () {
-    if (!isResettingSound.current) {
-      // The user position is used to provide a better behavior for the original play buttons,
-      // which always stop the sounds prior to (re)playing them: when the last action was the user pausing the sound
-      // or changing the position, start back from where we were rather than from the pinned position (or from zero).
+      if (0 === activeSeekActions.current.size) {
+        if (howl) {
+          (null !== position) && howl.seek(position);
+          wasPlaying.current && howl.play();
+          wasPlaying.current = false;
+        }
+
+        isSeeking.current = false;
+      }
+    }, [ howl, isSeeking, wasPlaying, activeSeekActions, onSeek ]);
+
+    const play = useCallback(() => howl && !isSeeking.current && howl.play(), [ howl, isSeeking ]);
+
+    const pause = useCallback(() => howl && howl.pause(), [ howl ]);
+
+    const stop = useCallback(() => {
+      if (howl) {
+        hasUserStopped.current = true;
+        howl.stop()
+      }
+    }, [ howl ]);
+
+    const pinStart = useCallback(() => {
+      const start = getValidPosition(positionRef.current);
+      (null !== start) && (startPosition.current = start);
+    }, [ positionRef, startPosition, getValidPosition ]);
+
+    const useKeys = (keys, callback, deps, eventName = 'keydown') => {
+      useKeyCi(keys, (key, event) => {
+        if (active) {
+          discardEvent(event);
+          callback(key, event);
+        }
+      }, { event: eventName }, [ active ].concat(deps));
+    };
+
+    useKeys(
+      [ '<', '>' ],
+      key => {
+        if ('<' === key) {
+          (rateRef.current > getTtsMinRate(ttsType)) && onRateChange(rateRef.current - RATE_STEP);
+        } else {
+          (rateRef.current < getTtsMaxRate(ttsType)) && onRateChange(rateRef.current + RATE_STEP);
+        }
+      },
+      [ ttsType, rateRef, onRateChange ]
+    )
+
+    useKeys(
+      [ 'arrowdown', 'arrowup' ],
+      key => {
+        if ('arrowdown' === key) {
+          (volumeRef.current > getTtsMinVolume()) && onVolumeChange(volumeRef.current - VOLUME_STEP)
+        } else {
+          (volumeRef.current < getTtsMaxVolume()) && onVolumeChange(volumeRef.current + VOLUME_STEP);
+        }
+      },
+      [ volumeRef, onVolumeChange ]
+    );
+
+    useKeys(
+      [ '0', 'home', 'end' ],
+      key => onSeek(('end' === key) ? duration : 0),
+      [ duration, onSeek ]
+    );
+
+    useKeys(
+      DIGIT_CHARS.slice(1),
+      key => onSeek(getValidPosition(duration * Number(key) / 10)),
+      [ duration, getValidPosition, onSeek ]
+    );
+
+    useKeys(
+      [ 'arrowleft', 'arrowright' ],
+      (key, event) => {
+        const position = ('arrowleft' === key)
+          ? Math.max(0.0, positionRef.current - POSITION_STEP)
+          : Math.min(duration, positionRef.current + POSITION_STEP);
+
+        if (!event.repeat) {
+          onLongSeekStart(key, position);
+        } else if (position !== positionRef.current) {
+          onSeek(position);
+        }
+      },
+      [ duration, positionRef, onSeek, onLongSeekStart ],
+    );
+
+    useKeys(
+      [ 'arrowleft', 'arrowright' ],
+      key => onLongSeekEnd(key, positionRef.current),
+      [ positionRef, onLongSeekEnd ],
+      'keyup'
+    );
+
+    useKeys(
+      [ ' ', 'k' ],
+      () => (!isPlaying || isPaused)
+        ? play()
+        : pause(),
+      [ isPlaying, isPaused, play, pause ]
+    );
+
+    useKeys(
+      'p',
+      () => pinStart(),
+      [ pinStart ]
+    );
+
+    // Re-initialize the sound data when the "Howl" object becomes available (or changes).
+    // Register the dependency-less "Howl" listeners.
+    useEffect(() => {
+      if (howl) {
+        const isPlaying = howl.playing();
+        const position = getHowlPosition(howl);
+
+        setDuration(howl.duration());
+        setPlayPosition(position || 0.0);
+        setIsPlaying(isPlaying);
+        setIsPaused(!isPlaying && (position > 0.0));
+
+        const onPlay = () => {
+          setIsPlaying(true);
+          setIsPaused(false);
+        }
+
+        const onPause = () => {
+          setIsPaused(true);
+          userPosition.current = getHowlPosition(howl);
+        };
+
+        howl.on('play', onPlay);
+        howl.on('pause', onPause);
+
+        return () => {
+          if (howl) {
+            howl.off('play', onPlay);
+            howl.off('pause', onPause);
+          }
+        };
+      }
+    }, [ howl, setDuration, setPlayPosition, setIsPlaying, setIsPaused, userPosition ])
+
+    const isResettingSound = useRef(false);
+
+    // When it stops, resets the sound position to whichever is the most relevant.
+    const onStop = useCallback(function () {
+      if (isResettingSound.current) {
+        // Do not interfere with the sound cleanup when we're unmounting.
+        return;
+      }
+
+      // The user position is used to provide a better behavior for the original playback buttons,
+      // which always stop the sounds prior to (re)playing them:
+      // when the last action was the user pausing the sound or changing the position,
+      // start back from where we were rather than from the pinned position (or from zero).
+      // This only holds if the user did not stop the sound himself or chose the last decisecond.
       const newPosition =
         hasUserStopped.current
         || (null === userPosition.current)
         || (userPosition.current >= duration)
-          ? startPosition
+          ? startPosition.current
           : userPosition.current;
 
       hasUserStopped.current = false;
       setIsPlaying(false);
       setPlayPosition(newPosition);
       this.seek(newPosition);
-    }
-  }, [
-    duration,
-    startPosition,
-    setIsPlaying,
-    userPosition,
-    hasUserStopped,
-    setPlayPosition,
-    isResettingSound
-  ]);
+    }, [
+      duration,
+      setIsPlaying,
+      startPosition,
+      userPosition,
+      hasUserStopped,
+      setPlayPosition,
+      isResettingSound,
+    ]);
 
-  // Register the listeners that depend on the pinned start position.
-  useEffect(() => {
-    if (howl) {
-      howl.on('end', onStop);
-      howl.on('stop', onStop);
+    // Register the dependent "Howl" listeners.
+    useEffect(() => {
+      if (howl) {
+        howl.on('end', onStop);
+        howl.on('stop', onStop);
 
-      return () => {
-        howl.off('end', onStop);
-        howl.off('stop', onStop);
-      };
-    }
-  }, [ howl, onStop ]);
-
-  // Reset the position of the sound in case it might be used again later
-  // (if the user gave a wrong answer, eg, or if the TTS is used in other challenges).
-  useUnmount(() => {
-    if (howl) {
-      isResettingSound.current = true;
-      howl.stop();
-      howl.seek(0);
-    }
-  });
-
-  // Regularly refresh the position when the sound is being played.
-  useInterval(() => {
-    if (howl && howl.playing()) {
-      const playPosition = getHowlPosition(howl);
-
-      if (
-        !isPaused
-        && (playPosition !== position)
-        && (playPosition !== userPosition.current)
-      ) {
-        setPlayPosition(playPosition);
+        return () => {
+          howl.off('end', onStop);
+          howl.off('stop', onStop);
+        };
       }
-    }
-  }, isPlaying && !isPaused ? 75 : null);
+    }, [ howl, onStop ]);
 
-  const hasSound = isObject(howl);
+    // When finished, reset the position of the sound in case it might be used again later
+    // (if the user gave a wrong answer, eg, or if the TTS is used in other challenges).
+    useUnmount(() => {
+      if (howl) {
+        isResettingSound.current = true;
+        howl.stop();
+        howl.seek(0);
+      }
+    });
 
-  const positionHint = !hasSound
-    ? '? / ?'
-    : `${position.toFixed(1)}s / ${duration.toFixed(1)}s`;
+    // Regularly refresh the position when the sound is being played.
+    useInterval(() => {
+      if (howl && howl.playing()) {
+        const playPosition = getHowlPosition(howl);
 
-  return (
-    <div className={getElementClassNames(WRAPPER)}>
-      <ControlSlider
-        type={sliders.TYPE_RATE}
-        value={rate}
-        min={getTtsMinRate(ttsType)}
-        max={getTtsMaxRate(ttsType)}
-        step={0.1}
-        hint={`${rate}x`}
-        onChange={onRateChange}
-        onChangeEnd={onRateChange} />
+        // Only change the position when relevant/appropriate.
+        if (
+          !isPaused
+          && (playPosition !== position)
+          && (playPosition !== userPosition.current)
+        ) {
+          setPlayPosition(playPosition);
+        }
+      }
+    }, isPlaying && !isPaused ? 75 : null);
 
-      <ControlSlider
-        type={sliders.TYPE_VOLUME}
-        value={volume}
-        min={getTtsMinVolume()}
-        max={getTtsMaxVolume()}
-        step={0.1}
-        hint={`${Math.round(volume * 100.0)}%`}
-        onChange={onVolumeChange}
-        onChangeEnd={onVolumeChange} />
+    const getElementClassNames = useStyles(CLASS_NAMES, [ formStyle ]);
 
-      <ControlSlider
-        type={sliders.TYPE_POSITION}
-        value={position}
-        min={0.0}
-        max={duration}
-        step={0.1}
-        hint={positionHint}
-        disabled={!hasSound}
-        onChangeStart={onPositionChangeStart}
-        onChange={onPositionChange}
-        onChangeEnd={onPositionChangeEnd} />
+    const hasSound = isObject(howl);
 
-      <div className={getElementClassNames(BUTTONS_WRAPPER)}>
-        {!isPlaying || isPaused
-          ? (
-            <ControlButton
-              type={buttons.TYPE_PLAY}
-              disabled={!hasSound}
-              onClick={play} />
-          ) : (
-            <ControlButton
-              type={buttons.TYPE_PAUSE}
-              disabled={!hasSound}
-              onClick={pause} />
-          )}
+    const rateHint = rate === 1
+      ? '1x'
+      : `${rate.toFixed(1)}x`;
 
-        <ControlButton
-          type={buttons.TYPE_STOP}
-          disabled={!hasSound || !isPlaying}
-          onClick={stop} />
+    const positionHint = !hasSound
+      ? '? / ?'
+      : `${position.toFixed(1)}s / ${duration.toFixed(1)}s`;
 
-        <ControlButton
-          type={buttons.TYPE_PIN}
+    const wrapperState = active ? WRAPPER__ACTIVE : null;
+
+    return (
+      <div className={getElementClassNames([ WRAPPER, wrapperState ])}>
+        <ControlSlider
+          type={sliders.TYPE_RATE}
+          value={rate}
+          min={getTtsMinRate(ttsType)}
+          max={getTtsMaxRate(ttsType)}
+          step={RATE_STEP}
+          hint={rateHint}
+          onChange={onRateChange}
+          onChangeEnd={onRateChange} />
+
+        <ControlSlider
+          type={sliders.TYPE_VOLUME}
+          value={volume}
+          min={getTtsMinVolume()}
+          max={getTtsMaxVolume()}
+          step={VOLUME_STEP}
+          hint={`${Math.round(volume * 100.0)}%`}
+          onChange={onVolumeChange}
+          onChangeEnd={onVolumeChange} />
+
+        <ControlSlider
+          type={sliders.TYPE_POSITION}
+          value={position}
+          min={0.0}
+          max={duration}
+          step={POSITION_STEP}
+          hint={positionHint}
           disabled={!hasSound}
-          onClick={pinStart} />
+          onChangeStart={onLongSeekStart('slider', _)}
+          onChange={onSeek}
+          onChangeEnd={onLongSeekEnd('slider', _)} />
+
+        <div className={getElementClassNames(BUTTONS_WRAPPER)}>
+          {!isPlaying || isPaused
+            ? (
+              <ControlButton
+                type={buttons.TYPE_PLAY}
+                disabled={!hasSound}
+                onClick={play} />
+            ) : (
+              <ControlButton
+                type={buttons.TYPE_PAUSE}
+                disabled={!hasSound}
+                onClick={pause} />
+            )}
+
+          <ControlButton
+            type={buttons.TYPE_STOP}
+            disabled={!hasSound || !isPlaying}
+            onClick={stop} />
+
+          <ControlButton
+            type={buttons.TYPE_PIN}
+            disabled={!hasSound}
+            onClick={pinStart} />
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default ControlPanel;
 
 const WRAPPER = 'wrapper';
+const WRAPPER__ACTIVE = 'wrapper__active';
 const BUTTONS_WRAPPER = 'button_wrapper';
 
 const CLASS_NAMES = {
   [BASE]: {
-    [WRAPPER]: [ `${EXTENSION_PREFIX}control-panel` ],
+    [WRAPPER]: [
+      `${EXTENSION_PREFIX}control-panel`,
+    ],
+    [WRAPPER__ACTIVE]: [
+      // Copied from the "Use keyboard" / "Use word bank" button. Only keep the class name which applies the color.
+      '_104UW',
+      `${EXTENSION_PREFIX}control-panel_active`,
+    ],
     [BUTTONS_WRAPPER]: [
       // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
       // The class responsible for the null height is ignored here.

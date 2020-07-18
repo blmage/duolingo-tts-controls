@@ -47,6 +47,19 @@ export function discardEvent(event) {
 }
 
 /**
+ * @returns {Element|null} The currently focused input, if any.
+ */
+export function getFocusedInput() {
+  const input = document.activeElement;
+
+  if (input && ([ 'input', 'select', 'textarea' ].indexOf(input.tagName.toLowerCase()) >= 0)) {
+    return input;
+  }
+
+  return null;
+}
+
+/**
  * The iframe element used to access working logging functions.
  *
  * @type {HTMLIFrameElement|null}
