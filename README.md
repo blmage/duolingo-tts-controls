@@ -73,7 +73,7 @@ When controls are available, and:
 
   * `Ctrl` / `Control` to open the first panel.
 
-* a panel is displayed, use:
+* a control panel is displayed, use:
   
   * `Ctrl` / `Control` to switch focus back and forth between the panel and the answer input,
 
@@ -81,7 +81,7 @@ When controls are available, and:
 
   * `Esc` to close the panel.
 
-* a panel is displayed and focused (*a keyboard icon is visible in the lower-right corner*), use:
+* a control panel is displayed and focused (*a keyboard icon is visible in the lower-right corner*), use:
 
   * `<` / `>` to decrease / increase the playback rate (speed),
 
