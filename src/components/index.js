@@ -3,7 +3,7 @@ import { isArray } from '../functions';
 
 /**
  * The key under which to store the class names of an element that are always applicable,
- * no matter what the current state of the component is.
+ * no matter what the current state/context of the component is.
  *
  * @type {symbol}
  */
@@ -12,11 +12,9 @@ export const BASE = Symbol('base');
 /**
  * A hook for getting all the class names of an element based on the current state/context of its parent component.
  *
- * @param {object} classNames Some nested maps from state and element keys to class names.
- * @param {(string|symbol)[]} stateKeys A list of keys describing the current state of the component.
- * @returns {Function}
- * A function which, given one or more element keys, returns a list of the registered class names that are
- * currently applicable.
+ * @param {object} classNames Some nested maps from state/context keys and element keys to class names.
+ * @param {(string|symbol)[]} stateKeys A list of keys describing the current state/context of the component.
+ * @returns {Function} A function which, given some element keys, returns a list of applicable class names.
  */
 export const useStyles = (classNames, stateKeys = []) => {
   return useCallback(elementKeys => {

@@ -13,6 +13,13 @@ export const EXTENSION_CODE = 'duolingo-tts-controls';
 export const EXTENSION_PREFIX = '_duo-ttsc_';
 
 /**
+ * The digits from 0 to 9.
+ * 
+ * @type {string[]}
+ */
+export const DIGIT_CHARS = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ];
+
+/**
  * The internal types identifying listening challenges.
  *
  * @type {string[]}

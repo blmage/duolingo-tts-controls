@@ -62,7 +62,37 @@ A small browser extension providing **playback controls** for the **listening ch
 
 ### Keyboard shortcuts
 
-No keyboard shortcuts are available at the moment, but this is the number one priority in the roadmap.
+When controls are available, and:
+
+* no control panel is displayed, use:
+
+  * `Ctrl` / `Control` to open the first panel.
+
+* a panel is displayed, use:
+  
+  * `Ctrl` / `Control` to switch focus back and forth between the panel and the answer input,
+
+  * `Tab` to cycle through the available panels,
+
+  * `Esc` to close the panel.
+
+* a panel is displayed and focused (*a keyboard icon is visible in the lower-right corner*), use:
+
+  * `<` / `>` to decrease / increase the playback rate (speed),
+
+  * `↓` / `↑` to decrease / increase the playback volume,
+
+  * `←` / `→` to move the position backward / forward,
+
+  * `0` .. `9` to set the position at 0 .. 90% of the duration,
+
+  * `Home` to set the position at the start,
+
+  * `End` to set the position at the end (think of it more or less as a stop button),
+
+  * `Space` / `k` to play / pause the sound,
+
+  * `p` to "pin" the current position (the sound will start from there from now on).
 
 ### Limitations
 

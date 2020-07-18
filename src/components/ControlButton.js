@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 import { noop } from '../functions';
 import { EXTENSION_PREFIX } from '../constants';
 import { BASE, useStyles } from './index';
@@ -16,13 +17,28 @@ const TYPES = [
 ];
 
 const ControlButton = ({ type, disabled = false, onClick = noop }) => {
+  const button = useRef(null);
   const getElementClassNames = useStyles(CLASS_NAMES, [ type ]);
 
+  // Blur the button if it is both focused and disabled.
+  // This prevents the button from completely swallowing the keyboard events on Firefox.
+  useEffect(() => {
+    if (
+      disabled
+      && button.current
+      && (document.activeElement === button.current)
+    ) {
+      button.current.blur();
+    }
+  })
+  
   return (
     <div className={getElementClassNames(WRAPPER)}>
       <button
+        ref={button}
         disabled={disabled}
         onClick={onClick}
+        onKeyUp={event => event.preventDefault()}
         className={getElementClassNames(BUTTON)}>
         <span className={getElementClassNames(ICON)} />
       </button>
@@ -39,7 +55,9 @@ const ICON = 'icon';
 const CLASS_NAMES = {
   [BASE]: {
     // Copied from the direct wrapper of each special letter button provided for some languages (such as French).
-    [WRAPPER]: [ '_10S_q' ],
+    [WRAPPER]: [ 
+      '_10S_q',
+    ],
     // Copied from the special letter buttons.
     [BUTTON]: [
       '_2dfXt',
@@ -55,7 +73,7 @@ const CLASS_NAMES = {
       '_1BWZU',
       '_1LIf4',
       'QVrnU',
-      `${EXTENSION_PREFIX}control-button`
+      `${EXTENSION_PREFIX}control-button`,
     ],
     [ICON]: [
       // Copied by searching for the same color as the "Use keyboard" / "Use word bank" button,
