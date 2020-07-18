@@ -45,10 +45,15 @@ A small browser extension providing **playback controls** for the **listening ch
 * The available controls include:
   
   * a rate (speed) slider,
+
   * a volume slider, 
+
   * a seek bar,
+
   * a play/pause button,
+
   * a stop button,
+
   * a "start pinning" button, to define the current position as the new start position.
 
 * Strives to blend seamlessly in [Duolingo](https://www.duolingo.com)'s UI, and to be compatible with custom themes
