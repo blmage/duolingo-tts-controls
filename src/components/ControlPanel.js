@@ -436,8 +436,9 @@ const CLASS_NAMES = {
       `${EXTENSION_PREFIX}control-panel`,
     ],
     [WRAPPER__ACTIVE]: [
-      // Copied from the "Use keyboard" / "Use word bank" button. Only keep the class name which applies the color.
-      '_104UW',
+      // Copied by searching for the same color as the "Use keyboard" / "Use word bank" button,
+      // but without the hover and pointer styles.
+      'D9gQ7',
       `${EXTENSION_PREFIX}control-panel_active`,
     ],
     [BUTTONS_WRAPPER]: [
