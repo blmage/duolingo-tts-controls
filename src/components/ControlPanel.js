@@ -51,7 +51,7 @@ const ControlPanel =
     const [ duration, setDuration ] = useState(0.0);
     const [ position, positionRef, setPosition ] = useStateRef(0.0);
     const [ isPlaying, setIsPlaying ] = useState(false);
-    const [ isPaused, setIsPaused ] = useState(false);
+    const [ isPaused, isPausedRef, setIsPaused ] = useStateRef(false);
     const startPosition = useRef(0.0);
 
     const isSeeking = useRef(false);
@@ -103,12 +103,16 @@ const ControlPanel =
       const position = getValidPosition(raw);
 
       if (null !== position) {
-        setUserPosition(position);
+        // Only remember the user-defined position when the sound is paused.
+        (isSeeking.current ? !wasPlaying.current : isPausedRef.current)
+          ? setUserPosition(position)
+          : setPlayPosition(position);
+
         howl && !isSeeking.current && howl.seek(position);
       }
 
       return position;
-    }, [ howl, isSeeking, getValidPosition, setUserPosition ]);
+    }, [ howl, isPausedRef, isSeeking, wasPlaying, getValidPosition, setPlayPosition, setUserPosition ]);
 
     // Handles the start of a long-running seek action.
     const onLongSeekStart = useCallback((action, raw) => {
@@ -255,6 +259,7 @@ const ControlPanel =
         const onPlay = () => {
           setIsPlaying(true);
           setIsPaused(false);
+          userPosition.current = null;
         }
 
         const onPause = () => {
@@ -283,9 +288,9 @@ const ControlPanel =
         return;
       }
 
-      // The user position is used to provide a better behavior for the original playback buttons,
+      // The user-defined position is used to provide a better behavior for the original playback buttons,
       // which always stop the sounds prior to (re)playing them:
-      // when the last action was the user pausing the sound or changing the position,
+      // when the last action was the user pausing the sound, or changing the position when the sound was paused,
       // start back from where we were rather than from the pinned position (or from zero).
       // This only holds if the user did not stop the sound himself or chose the last decisecond.
       const newPosition =
@@ -296,18 +301,12 @@ const ControlPanel =
           : userPosition.current;
 
       hasUserStopped.current = false;
+
       setIsPlaying(false);
       setPlayPosition(newPosition);
+
       this.seek(newPosition);
-    }, [
-      duration,
-      setIsPlaying,
-      startPosition,
-      userPosition,
-      hasUserStopped,
-      setPlayPosition,
-      isResettingSound,
-    ]);
+    }, [ duration, setIsPlaying, startPosition, userPosition, hasUserStopped, setPlayPosition, isResettingSound ]);
 
     // Register the dependent "Howl" listeners.
     useEffect(() => {
