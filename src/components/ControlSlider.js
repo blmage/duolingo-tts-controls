@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useCallback, useRef, useState } from 'preact/hooks';
+import { useCallback, useRef } from 'preact/hooks';
 import { noop } from '../functions';
 import { EXTENSION_PREFIX } from '../constants';
 import { BASE, useStyles } from './index';
@@ -27,25 +27,25 @@ const ControlSlider =
      onChange = noop,
      onChangeEnd = noop,
    }) => {
-    const [ isChanging, setIsChanging ] = useState(false);
-    const input = useRef(null);
+    const isChanging = useRef(false);
 
     const onInput = useCallback(event => {
       const value = event.target.value;
 
-      if (!isChanging) {
+      if (!isChanging.current) {
+        isChanging.current = true;
         onChangeStart(value);
-        setIsChanging(true);
       } else {
         onChange(value);
       }
-    }, [ isChanging, setIsChanging, onChangeStart, onChange ]);
+    }, [ onChangeStart, onChange, isChanging ]);
 
     const onLastInput = useCallback(event => {
-      onChangeEnd(event.target.value);
-      setIsChanging(false);
-      input.current && input.current.blur();
-    }, [ setIsChanging, onChangeEnd ]);
+      if (isChanging.current) {
+        isChanging.current = false;
+        onChangeEnd(event.target.value);
+      }
+    }, [ onChangeEnd, isChanging ]);
 
     const getElementClassNames = useStyles(CLASS_NAMES, [ type ]);
 
@@ -56,7 +56,6 @@ const ControlSlider =
           className={getElementClassNames([ BUTTON, MIN_BUTTON ])} />
 
         <input
-          ref={input}
           type="range"
           min={min}
           max={max}
@@ -65,8 +64,10 @@ const ControlSlider =
           disabled={disabled}
           // Prevent the original keyboard handling from interfering with our keyboard shortcuts.
           onKeyDown={event => event.preventDefault()}
+          onKeyUp={event => event.preventDefault()}
           onInput={onInput}
           onChange={onLastInput}
+          onMouseUp={onLastInput}
           className={getElementClassNames(INPUT)} />
 
         <span

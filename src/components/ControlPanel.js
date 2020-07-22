@@ -12,6 +12,7 @@ import {
   getTtsMaxVolume,
   getTtsMinRate,
   getTtsMinVolume,
+  isUnstableHowl,
   TTS_TYPE_NORMAL,
   useTtsRate,
   useTtsVolume,
@@ -50,35 +51,40 @@ const ControlPanel =
     const [ volume, volumeRef, setVolume ] = useTtsVolume(ttsType);
     const [ duration, setDuration ] = useState(0.0);
     const [ position, positionRef, setPosition ] = useStateRef(0.0);
-    const [ isPlaying, setIsPlaying ] = useState(false);
+    const [ isPlaying, isPlayingRef, setIsPlaying ] = useStateRef(false);
     const [ isPaused, isPausedRef, setIsPaused ] = useStateRef(false);
     const startPosition = useRef(0.0);
 
-    const isSeeking = useRef(false);
-    const wasPlaying = useRef(false);
-    const activeSeekActions = useRef(new Set());
+    // Returns whether the sound is currently on hold, because it is stopped or paused.
+    const isOnHold = useCallback(
+      () => !isPlayingRef.current || isPausedRef.current,
+      [ isPlayingRef, isPausedRef ]
+    );
 
-    // See the onStop() callback for the rationale behind those refs.
-    const userPosition = useRef(null);
-    const hasUserStopped = useRef(false);
+    // ------ Rate / volume settings ------
 
     const applyPlaybackSettings = useThrottledCallback(
       (howl, rate, volume) => howl && applyTtsSettingsToHowlSound(rate, volume, howl),
-      50,
+      { delay: 50, defer: true },
       howl
     );
 
-    // Updates and reapplies the playback rate.
+    // Sets and applies a new playback rate.
     const onRateChange = useCallback(rate => {
       setRate(rate);
       applyPlaybackSettings(rate, volumeRef.current);
     }, [ volumeRef, setRate, applyPlaybackSettings ]);
 
-    // Updates and reapplies the playback volume.
+    // Sets and applies a new playback volume.
     const onVolumeChange = useCallback(volume => {
       setVolume(volume);
       applyPlaybackSettings(rateRef.current, volume);
     }, [ rateRef, setVolume, applyPlaybackSettings ]);
+
+    // ------ Position seeking ------
+
+    const userPosition = useRef(null);
+    const hasUserStopped = useRef(false);
 
     // Returns a valid position in the current sound, rounded to one decimal place.
     const getValidPosition = useCallback(raw => {
@@ -98,37 +104,57 @@ const ControlPanel =
       userPosition.current = position;
     }, [ setPosition, userPosition ]);
 
-    // Sets and applies the new sound position.
+    const activeSeekActions = useRef(new Set());
+    const wasPlayingBeforeSeeking = useRef(false);
+
+    // Returns whether at least one seeking action is going on at the moment.
+    const isSeeking = useCallback(
+      () => (activeSeekActions.current.size > 0),
+      [ activeSeekActions ]
+    );
+
+    // Sets and applies a new sound position.
     const onSeek = useCallback(raw => {
       const position = getValidPosition(raw);
 
       if (null !== position) {
-        // Only remember the user-defined position when the sound is paused.
-        (isSeeking.current ? !wasPlaying.current : isPausedRef.current)
-          ? setUserPosition(position)
-          : setPlayPosition(position);
+        let isNextStartPosition;
 
-        howl && !isSeeking.current && howl.seek(position);
+        if (isSeeking()) {
+          isNextStartPosition = !wasPlayingBeforeSeeking.current;
+        } else {
+          howl && howl.seek(position);
+          isNextStartPosition = isOnHold();
+        }
+
+        isNextStartPosition ? setUserPosition(position) : setPlayPosition(position);
       }
 
       return position;
-    }, [ howl, isPausedRef, isSeeking, wasPlaying, getValidPosition, setPlayPosition, setUserPosition ]);
+    }, [
+      howl,
+      getValidPosition,
+      setPlayPosition,
+      setUserPosition,
+      isOnHold,
+      isSeeking,
+      wasPlayingBeforeSeeking,
+    ]);
 
     // Handles the start of a long-running seek action.
     const onLongSeekStart = useCallback((action, raw) => {
       activeSeekActions.current.add(action);
-      isSeeking.current = true;
       onSeek(raw);
 
       if (1 === activeSeekActions.current.size) {
         if (howl && isPlaying) {
-          wasPlaying.current = !isPaused;
+          wasPlayingBeforeSeeking.current = !isPaused;
           howl.pause();
         } else {
-          wasPlaying.current = false;
+          wasPlayingBeforeSeeking.current = false;
         }
       }
-    }, [ howl, isPlaying, isPaused, isSeeking, wasPlaying, activeSeekActions, onSeek ]);
+    }, [ howl, isPlaying, isPaused, activeSeekActions, wasPlayingBeforeSeeking, onSeek ]);
 
     // Handles the end of a long-running seek action.
     const onLongSeekEnd = useCallback((action, raw) => {
@@ -138,17 +164,30 @@ const ControlPanel =
       if (0 === activeSeekActions.current.size) {
         if (howl) {
           (null !== position) && howl.seek(position);
-          wasPlaying.current && howl.play();
-          wasPlaying.current = false;
+          wasPlayingBeforeSeeking.current && howl.play();
         }
 
-        isSeeking.current = false;
+        wasPlayingBeforeSeeking.current = false;
       }
-    }, [ howl, isSeeking, wasPlaying, activeSeekActions, onSeek ]);
+    }, [ howl, activeSeekActions, wasPlayingBeforeSeeking, onSeek ]);
 
-    const play = useCallback(() => howl && !isSeeking.current && howl.play(), [ howl, isSeeking ]);
+    // ------ Sound actions ------
 
-    const pause = useCallback(() => howl && howl.pause(), [ howl ]);
+    const play = useCallback(() => howl && !isSeeking() && howl.play(), [ howl, isSeeking ]);
+
+    const pause = useCallback(() => {
+      if (howl) {
+        howl.pause();
+
+        // On Firefox, the readyState of the <audio> node gets stuck on "2" when paused near the end.
+        // Seeking to the current position allows working around this.
+        const position = getHowlPosition(howl);
+
+        if (position >= duration - 0.2) {
+          howl.seek(position);
+        }
+      }
+    }, [ howl, duration ]);
 
     const stop = useCallback(() => {
       if (howl) {
@@ -161,6 +200,8 @@ const ControlPanel =
       const start = getValidPosition(positionRef.current);
       (null !== start) && (startPosition.current = start);
     }, [ positionRef, startPosition, getValidPosition ]);
+
+    // ------ Keyboard shortcuts ------
 
     const useKeys = (keys, callback, deps, eventName = 'keydown') => {
       useKeyCi(keys, (key, event) => {
@@ -197,7 +238,7 @@ const ControlPanel =
 
     useKeys(
       [ '0', 'home', 'end' ],
-      key => onSeek(('end' === key) ? duration : 0),
+      key => onSeek('end' === key ? duration : 0),
       [ duration, onSeek ]
     );
 
@@ -210,7 +251,7 @@ const ControlPanel =
     useKeys(
       [ 'arrowleft', 'arrowright' ],
       (key, event) => {
-        const position = ('arrowleft' === key)
+        const position = 'arrowleft' === key
           ? Math.max(0.0, positionRef.current - POSITION_STEP)
           : Math.min(duration, positionRef.current + POSITION_STEP);
 
@@ -232,7 +273,7 @@ const ControlPanel =
 
     useKeys(
       [ ' ', 'k' ],
-      () => (!isPlaying || isPaused)
+      () => !isPlaying || isPaused
         ? play()
         : pause(),
       [ isPlaying, isPaused, play, pause ]
@@ -243,6 +284,10 @@ const ControlPanel =
       () => pinStart(),
       [ pinStart ]
     );
+
+    // ------ Sound state handling ------
+
+    const hasSeekedUnstable = useRef(false);
 
     // Re-initialize the sound data when the "Howl" object becomes available (or changes).
     // Register the dependency-less "Howl" listeners.
@@ -256,33 +301,54 @@ const ControlPanel =
         setIsPlaying(isPlaying);
         setIsPaused(!isPlaying && (position > 0.0));
 
-        const onPlay = () => {
-          setIsPlaying(true);
-          setIsPaused(false);
-          userPosition.current = null;
-        }
+        // When the sound is played, registers the new state,
+        // and tries to work around some quirks from the underlying audio library.
+        const onHowlPlay = function (soundId) {
+          if (isUnstableHowl(this) && !hasSeekedUnstable.current) {
+            // When the "Howl" object uses multiple sounds, we can't be sure that any seek() we applied in onHowlStop()
+            // has taken effect on the sound that has just started.
+            hasSeekedUnstable.current = true;
+            this.seek(positionRef.current, soundId);
+          } else {
+            // seek() triggers both pause() and play(), so the "unstable" case will end up here too.
+            setIsPlaying(true);
+            setIsPaused(false);
+            userPosition.current = null;
+            hasSeekedUnstable.current = false;
+          }
+        };
 
-        const onPause = () => {
+        // When the sound is paused, registers the new state, and remembers the current position as user-defined.
+        const onHowlPause = () => {
           setIsPaused(true);
           userPosition.current = getHowlPosition(howl);
         };
 
-        howl.on('play', onPlay);
-        howl.on('pause', onPause);
+        howl.on('play', onHowlPlay);
+        howl.on('pause', onHowlPause);
 
         return () => {
           if (howl) {
-            howl.off('play', onPlay);
-            howl.off('pause', onPause);
+            howl.off('play', onHowlPlay);
+            howl.off('pause', onHowlPause);
           }
         };
       }
-    }, [ howl, setDuration, setPlayPosition, setIsPlaying, setIsPaused, userPosition ])
+    }, [
+      howl,
+      positionRef,
+      setDuration,
+      setPlayPosition,
+      setIsPlaying,
+      setIsPaused,
+      userPosition,
+      hasSeekedUnstable,
+    ]);
 
     const isResettingSound = useRef(false);
 
-    // When it stops, resets the sound position to whichever is the most relevant.
-    const onStop = useCallback(function () {
+    // When the sound is stopped, registers the new state, and resets the position to whichever is the most relevant.
+    const onHowlStop = useCallback(function () {
       if (isResettingSound.current) {
         // Do not interfere with the sound cleanup when we're unmounting.
         return;
@@ -290,7 +356,7 @@ const ControlPanel =
 
       // The user-defined position is used to provide a better behavior for the original playback buttons,
       // which always stop the sounds prior to (re)playing them:
-      // when the last action was the user pausing the sound, or changing the position when the sound was paused,
+      // when the last action was the user pausing the sound, or changing the position when not playing,
       // start back from where we were rather than from the pinned position (or from zero).
       // This only holds if the user did not stop the sound himself or chose the last decisecond.
       const newPosition =
@@ -300,29 +366,32 @@ const ControlPanel =
           ? startPosition.current
           : userPosition.current;
 
-      hasUserStopped.current = false;
+      if (hasUserStopped.current) {
+        userPosition.current = null;
+        hasUserStopped.current = false;
+      }
 
       setIsPlaying(false);
-      setPlayPosition(newPosition);
+      setPosition(newPosition);
 
       this.seek(newPosition);
-    }, [ duration, setIsPlaying, startPosition, userPosition, hasUserStopped, setPlayPosition, isResettingSound ]);
+    }, [ duration, setIsPlaying, startPosition, userPosition, hasUserStopped, setPosition, isResettingSound ]);
 
     // Register the dependent "Howl" listeners.
     useEffect(() => {
       if (howl) {
-        howl.on('end', onStop);
-        howl.on('stop', onStop);
+        howl.on('end', onHowlStop);
+        howl.on('stop', onHowlStop);
 
         return () => {
-          howl.off('end', onStop);
-          howl.off('stop', onStop);
+          howl.off('end', onHowlStop);
+          howl.off('stop', onHowlStop);
         };
       }
-    }, [ howl, onStop ]);
+    }, [ howl, onHowlStop ]);
 
-    // When finished, reset the position of the sound in case it might be used again later
-    // (if the user gave a wrong answer, eg, or if the TTS is used in other challenges).
+    // When unmounting, reset the position of the sound in case it might be used again later
+    // (if the user gave a wrong answer, eg, or if the TTS is used by some other challenges).
     useUnmount(() => {
       if (howl) {
         isResettingSound.current = true;
@@ -336,7 +405,7 @@ const ControlPanel =
       if (howl && howl.playing()) {
         const playPosition = getHowlPosition(howl);
 
-        // Only change the position when relevant/appropriate.
+        // Only change the position when relevant / appropriate.
         if (
           !isPaused
           && (playPosition !== position)
@@ -370,6 +439,7 @@ const ControlPanel =
           max={getTtsMaxRate(ttsType)}
           step={RATE_STEP}
           hint={rateHint}
+          onChangeStart={onRateChange}
           onChange={onRateChange}
           onChangeEnd={onRateChange} />
 
@@ -380,6 +450,7 @@ const ControlPanel =
           max={getTtsMaxVolume()}
           step={VOLUME_STEP}
           hint={`${Math.round(volume * 100.0)}%`}
+          onChangeStart={onVolumeChange}
           onChange={onVolumeChange}
           onChangeEnd={onVolumeChange} />
 

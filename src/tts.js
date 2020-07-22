@@ -164,13 +164,37 @@ export function getHowlPosition(howl) {
     howl._playLock = false;
   }
 
-  const position = Number(howl.seek());
+  // seek() always returns the position of the first sound in the pool. This fails to take into account the fact that
+  // the "Howl" object may always contain multiple sounds: when a play() is requested and all the existing sounds are
+  // "busy" (either locked waiting for their <audio> node to be ready, or simply already playing), "howler.js" creates
+  // a clone of the original sound, which uses a new <audio> node that will be used for playing the sound.
+  let soundId;
+  const soundIds = howl._getSoundIds();
+
+  for (let i = 0; i < soundIds.length; i++) {
+    const sound = howl._soundById(soundIds[i]);
+    
+    if (!sound._paused) {
+      soundId = sound._id;
+      break;
+    }
+  }
+
+  const position = Number(howl.seek(soundId));
 
   if (wasLocked) {
     howl._playLock = true;
   }
 
   return isNaN(position) ? 0.0 : position;
+}
+
+/**
+ * @param {object} howl A "Howl" object from the "howler.js" library.
+ * @returns {boolean} Whether the given "Howl" object could exhibit weird behavior.
+ */
+export function isUnstableHowl(howl) {
+  return howl._getSoundIds().length > 1;
 }
 
 /**
