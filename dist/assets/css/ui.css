@@ -221,8 +221,12 @@
     position: absolute;
     left: 50%;
     top: 100%;
-    margin-top: 15px;
+    margin-top: 8px;
     transform: translate(-50%, 0);
+}
+
+.duo-ttsc_playback-buttons-wrapper_cartoon {
+    overflow: visible !important;
 }
 
 ._duo-ttsc_playback-button-wrapper_cartoon ._duo-ttsc_control-form-toggle-button::before {
