@@ -221,11 +221,11 @@
     position: absolute;
     left: 50%;
     top: 100%;
-    margin-top: 8px;
+    margin-top: 6px;
     transform: translate(-50%, 0);
 }
 
-.duo-ttsc_playback-buttons-wrapper_cartoon {
+._duo-ttsc_playback-buttons-wrapper_cartoon {
     overflow: visible !important;
 }
 
@@ -299,6 +299,6 @@
         top: auto;
         bottom: 100%;
         margin-top: 0;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
     }
 }
