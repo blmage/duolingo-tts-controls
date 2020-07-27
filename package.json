@@ -3,7 +3,7 @@
   "description": "A small browser extension providing playback controls for the listening challenges on Duolingo.",
   "license": "MIT",
   "author": "blmage",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "scripts": {
     "build": "rollup -c --environment production",
     "build-debug": "rollup -c --environment development",
