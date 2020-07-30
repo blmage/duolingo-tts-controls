@@ -5,9 +5,9 @@
 
 [![DeepScan grade](https://deepscan.io/api/teams/9459/projects/12777/branches/202379/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=9459&pid=12777&bid=202379)
 ![ESLint](https://github.com/blmage/duolingo-tts-controls/workflows/ESLint/badge.svg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fblmage%2Fduolingo-tts-controls.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fblmage%2Fduolingo-tts-controls?ref=badge_shield)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/hfgbpmknceenkbljmjlogkmhbpnbiika)](https://chrome.google.com/webstore/detail/duolingo-tts-controls/hfgbpmknceenkbljmjlogkmhbpnbiika)
 [![Mozilla Add-on](https://img.shields.io/amo/v/duolingo-tts-controls)](https://addons.mozilla.org/firefox/addon/duolingo-tts-controls/)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fblmage%2Fduolingo-tts-controls.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fblmage%2Fduolingo-tts-controls?ref=badge_shield)
 
 A small browser extension providing **playback controls** for the **listening challenges** on
 [Duolingo](https://www.duolingo.com).
@@ -118,7 +118,3 @@ When controls are available, and:
 
 If you encounter a bug, or if you have a suggestion regarding a new feature, don't hesitate to
 [open a related issue](https://github.com/blmage/duolingo-tts-controls/issues/new)!
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fblmage%2Fduolingo-tts-controls.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fblmage%2Fduolingo-tts-controls?ref=badge_large)
