@@ -204,6 +204,11 @@
 
 ._duo-ttsc_playback-button-wrapper_basic {
     flex-direction: column;
+    pointer-events: none;
+}
+
+._duo-ttsc_playback-button-wrapper_basic button {
+    pointer-events: all;
 }
 
 ._duo-ttsc_challenge-form_basic ._duo-ttsc_control-form-toggle-button_active::before {
