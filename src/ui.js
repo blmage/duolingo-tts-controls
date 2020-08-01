@@ -440,6 +440,16 @@ function setCurrentChallenge(challengeIndex) {
       playbackForm.append(panelWrapper);
 
       const container = playbackButton.parentElement;
+
+      // Prepend an invisible button to the wrapper, which is currently a <label>, to make it the controlled element
+      // instead of the playback button.
+      // This prevents the :hover and :active effects of the playback button from being triggered when not relevant.
+      const labelStateCatcher = document.createElement('button');
+      labelStateCatcher.style.display = 'none';
+      labelStateCatcher.addEventListener('click', () => playbackButton.click());
+      container.prepend(labelStateCatcher);
+
+      // Append a placeholder which will be replaced by the toggle button.
       const placeholder = document.createElement('div');
       container.appendChild(placeholder);
 
@@ -681,6 +691,8 @@ const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
 
 /**
  * The class name that can be added to an element to indicate that playback controls are active.
+ *
+ * @type {string}
  */
 const HAS_ACTIVE_CONTROLS_CLASS_NAME = `${EXTENSION_PREFIX}with-active-controls`;
 
