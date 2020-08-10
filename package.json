@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "preact": "^10.4.6",
+    "preact": "^10.4.7",
     "preact-use": "github:blmage/preact-use#master"
   },
   "devDependencies": {
