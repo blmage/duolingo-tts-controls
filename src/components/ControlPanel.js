@@ -23,12 +23,14 @@ import ControlButton, * as buttons from './ControlButton';
 import ControlSlider, * as sliders from './ControlSlider';
 
 /**
+ * The amount by which to decrease/increase the playback rate on a single step.
  *
  * @type {number}
  */
 const RATE_STEP = 0.1;
 
 /**
+ * The amount by which to decrease/increase the playback volume on a single step.
  *
  * @type {number}
  */
@@ -63,6 +65,7 @@ const ControlPanel =
 
     // ------ Rate / volume settings ------
 
+    // Applies some playback settings to a "Howl" object.
     const applyPlaybackSettings = useThrottledCallback(
       (howl, rate, volume) => howl && applyTtsSettingsToHowlSound(rate, volume, howl),
       { delay: 50, defer: true },
@@ -147,6 +150,7 @@ const ControlPanel =
       onSeek(raw);
 
       if (1 === activeSeekActions.current.size) {
+        // There is no other long-running seek action: pause the sound if it's playing, and remember its state.
         if (howl && isPlaying) {
           wasPlayingBeforeSeeking.current = !isPaused;
           howl.pause();
@@ -162,6 +166,7 @@ const ControlPanel =
       const position = onSeek(raw);
 
       if (0 === activeSeekActions.current.size) {
+        // This was the last long-running seek action: restore the initial sound state.
         if (howl) {
           (null !== position) && howl.seek(position);
           wasPlayingBeforeSeeking.current && howl.play();
@@ -173,8 +178,10 @@ const ControlPanel =
 
     // ------ Sound actions ------
 
+    // Plays the sound, if appropriate in the current context.
     const play = useCallback(() => howl && !isSeeking() && howl.play(), [ howl, isSeeking ]);
 
+    // Pauses the sound.
     const pause = useCallback(() => {
       if (howl) {
         howl.pause();
@@ -189,6 +196,7 @@ const ControlPanel =
       }
     }, [ howl, duration ]);
 
+    // Stops the sound.
     const stop = useCallback(() => {
       if (howl) {
         hasUserStopped.current = true;
@@ -196,6 +204,7 @@ const ControlPanel =
       }
     }, [ howl ]);
 
+    // Remembers the current playback position as the new starting position.
     const pinStart = useCallback(() => {
       const start = getValidPosition(positionRef.current);
       (null !== start) && (startPosition.current = start);
