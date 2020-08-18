@@ -56,29 +56,28 @@ const CLASS_NAMES = {
   [BASE]: {
     // Copied from the direct wrapper of each special letter button provided for some languages (such as French).
     [WRAPPER]: [ 
-      '_10S_q',
+      '_1OCDB',
     ],
     // Copied from the special letter buttons.
     [BUTTON]: [
-      '_2dfXt',
-      '_3ZQ9H',
-      '_3lE5Q',
-      '_18se6',
-      'vy3TL',
-      '_3iIWE',
-      '_1Mkpg',
-      '_1Dtxl',
-      '_1sVAI',
-      'sweRn',
-      '_1BWZU',
-      '_1LIf4',
-      'QVrnU',
+      '_3f9XI',
+      '_3iVqs',
+      '_2A7uO',
+      '_2gwtT',
+      '_1nlVc',
+      '_2fOC9',
+      't5wFJ',
+      '_3dtSu',
+      '_25Cnc',
+      '_3yAjN',
+      '_3Ev3S',
+      '_1figt',
       `${EXTENSION_PREFIX}control-button`,
     ],
     [ICON]: [
       // Copied by searching for the same color as the "Use keyboard" / "Use word bank" button,
       // but without the hover and pointer styles.
-      'D9gQ7',
+      '_3dDzT',
       `${EXTENSION_PREFIX}control-button-icon`,
     ]
   },

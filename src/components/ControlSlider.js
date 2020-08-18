@@ -99,8 +99,10 @@ const CLASS_NAMES = {
     ],
     [BUTTON]: [
       // Copied from the "Use keyboard" / "Use word bank" button.
-      '_104UW',
-      '_1a2L9',
+      // The class responsible for the minimum dimensions is ignored here.
+      '_3cbXv',
+      '_2RTMn',
+      '_3yAjN',
       `${EXTENSION_PREFIX}slider-button`
     ],
     [MIN_BUTTON]: [
@@ -111,14 +113,15 @@ const CLASS_NAMES = {
     ],
     [INPUT]: [
       // Copied from the session progress bar.
-      '_2iSv6',
+      '_2cmOB',
+      '_14nh2',
       // Copied from the most appropriate background of the session progress bar.
-      '_7gXTk',
+      '_2Z5hP',
       `${EXTENSION_PREFIX}slider-input`,
     ],
     [HINT]: [
       // Copied by searching for the same color as the button, without the hover and pointer styles.
-      'D9gQ7',
+      '_3dDzT',
       `${EXTENSION_PREFIX}slider-hint`,
     ],
   },

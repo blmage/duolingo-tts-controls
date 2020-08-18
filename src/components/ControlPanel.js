@@ -517,13 +517,13 @@ const CLASS_NAMES = {
     [WRAPPER__ACTIVE]: [
       // Copied by searching for the same color as the "Use keyboard" / "Use word bank" button,
       // but without the hover and pointer styles.
-      'D9gQ7',
+      '_3dDzT',
       `${EXTENSION_PREFIX}control-panel_active`,
     ],
     [BUTTONS_WRAPPER]: [
       // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
       // The class responsible for the null height is ignored here.
-      '_2mM1T',
+      'gcfYU',
       `${EXTENSION_PREFIX}control-buttons`,
     ],
   },

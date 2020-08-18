@@ -711,31 +711,30 @@ const ELEMENT_SELECTORS = {
   },
   // The control forms will be appended to those elements.
   [PLAYBACK_FORM]: {
-    [FORM_STYLE_BASIC]: '._3msZN',
-    [FORM_STYLE_CARTOON]: '.esH1e',
+    [FORM_STYLE_BASIC]: '._1cnOk',
+    [FORM_STYLE_CARTOON]: '._3mO3g',
   },
-  // Two forms can be present on the page at a given time, the inactive one being hidden under the other
-  // using a negative z-index on a wrapper (inside a "[ancestor_class]:nth-child(2)" rule).
+  // Two forms can be present on the page at a given time, the inactive one being hidden under the other using
+  // a negative z-index on a wrapper (inside a "[ancestor_class]:nth-child(2)" rule).
+  // Use [ancestor_class]:first-child here to make sure we target the right form.
   [PLAYBACK_BUTTONS_WRAPPER]: {
-    // Chosen over the other candidates because we need to apply horizontal centering here.
-    [FORM_STYLE_BASIC]: '._2NEKS:first-child ._3hbUp',
-    // The choice was not important here.
-    [FORM_STYLE_CARTOON]: '._2NEKS:first-child ._3D7BY',
+    [FORM_STYLE_BASIC]: '._863KE:first-child ._3L7Fu',
+    [FORM_STYLE_CARTOON]: '._863KE:first-child ._1b8Ja',
   },
   // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {
-    [FORM_STYLE_BASIC]: '._3hUV6',
-    [FORM_STYLE_CARTOON]: '._3hUV6',
+    [FORM_STYLE_BASIC]: '.sgs9X',
+    [FORM_STYLE_CARTOON]: '.sgs9X',
   },
   // The <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON]: {
-    [FORM_STYLE_BASIC]: '._2dIjg',
-    [FORM_STYLE_CARTOON]: '._1kiAo',
+    [FORM_STYLE_BASIC]: '._1x6bc',
+    [FORM_STYLE_CARTOON]: '._2kfEr',
   },
   // The <button> elements which trigger playing the slow TTS sounds.
   [SLOW_PLAYBACK_BUTTON]: {
-    [FORM_STYLE_BASIC]: '.gJtFB',
-    [FORM_STYLE_CARTOON]: '._1ySpy',
+    [FORM_STYLE_BASIC]: '._1Uoqa',
+    [FORM_STYLE_CARTOON]: '._1Vrvu',
   },
 }
 
@@ -747,8 +746,9 @@ const ELEMENT_SELECTORS = {
 const CONTROL_FORM_BASE_CLASS_NAMES = [
   `${EXTENSION_PREFIX}control-form`,
   // Copied by searching for a gray border color applied to the "::after" pseudo-element.
-  // This choice requires extra care for Darklingo++ (a dark border is preferable).
-  'RFxAM',
+  // This choice requires extra care for Darklingo++
+  // (it is preferable to have the same border color as the answer <textarea>).
+  '_1wJYQ',
 ];
 
 /**

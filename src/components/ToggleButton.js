@@ -35,39 +35,41 @@ const CLASS_NAMES = {
   [FORM_STYLE_BASIC]: {
     // Copied from the original playback buttons, ignoring the class names that set dimensions.
     [BUTTON]: [
-      '_2dIjg',
-      'XepLJ',
-      '_1bJB-',
-      'vy3TL',
-      '_3iIWE',
-      '_1Mkpg',
-      '_1Dtxl',
-      '_1sVAI',
-      'sweRn',
-      '_1BWZU',
-      '_2bW5I',
-      '_3ZpUo',
-      '_2odwU',
+      '_1x6bc',
+      '_1vUZG',
+      'whuSQ',
+      '_2gwtT',
+      '_1nlVc',
+      '_2fOC9',
+      't5wFJ',
+      '_3dtSu',
+      '_25Cnc',
+      '_3yAjN',
+      'UCrz7',
+      'yTpGk',
+      '_0Wim',
     ],
   },
-  [FORM_STYLE_CARTOON]: {
+  [FORM_STYLE_CARTOON]: { // todo
     // Copied from the original playback buttons, ignoring the class names that apply dimensions.
     [BUTTON]: [
-      '_1kiAo',
-      '_3iIWE',
-      '_1Mkpg',
-      '_2bW5I',
-      '_1Dtxl',
+      '_1oX8u',
+      '_1I13x',
+      '_2kfEr',
+      '_1nlVc',
+      '_2fOC9',
+      'UCrz7',
+      't5wFJ',
     ],
     // Copied by searching for the main link color, without side effects.
     // This choice requires extra care for Darklingo++ (the button color must change when it's active).
     [BUTTON__ACTIVE]: [
-      '_2rA41',
+      '_2__FI',
     ],
     // Copied by searching for the same color as the "Use keyboard" / "Use Word Bank" button,
     // without the hover and pointer styles.
     [BUTTON__INACTIVE]: [
-      'D9gQ7',
+      '_3cbXv',
     ],
   },
 };
