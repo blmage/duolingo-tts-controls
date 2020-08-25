@@ -215,18 +215,24 @@ const ControlPanel =
     const useKeys = (keys, callback, deps, eventName = 'keydown') => {
       useKeyCi(keys, (key, event) => {
         if (active) {
-          discardEvent(event);
+          discardEvent(event)
           callback(key, event);
         }
       }, { event: eventName }, [ active ].concat(deps));
     };
 
     useKeys(
-      [ '<', '>' ],
-      key => {
-        if ('<' === key) {
+      [ '<', '>', 'arrowleft', 'arrowright' ],
+      (key, event) => {
+        if (
+          !event.ctrlKey && ('<' === key)
+          || event.ctrlKey && ('arrowleft' === key)
+        ) {
           (rateRef.current > getTtsMinRate(ttsType)) && onRateChange(rateRef.current - RATE_STEP);
-        } else {
+        } else if (
+          !event.ctrlKey && ('>' === key)
+          || event.ctrlKey && ('arrowright' === key)
+        ) {
           (rateRef.current < getTtsMaxRate(ttsType)) && onRateChange(rateRef.current + RATE_STEP);
         }
       },
@@ -235,7 +241,11 @@ const ControlPanel =
 
     useKeys(
       [ 'arrowdown', 'arrowup' ],
-      key => {
+      (key, event) => {
+        if (event.ctrlKey) {
+          return;
+        }
+
         if ('arrowdown' === key) {
           (volumeRef.current > getTtsMinVolume()) && onVolumeChange(volumeRef.current - VOLUME_STEP)
         } else {
@@ -260,6 +270,10 @@ const ControlPanel =
     useKeys(
       [ 'arrowleft', 'arrowright' ],
       (key, event) => {
+        if (event.ctrlKey) {
+          return;
+        }
+
         const position = 'arrowleft' === key
           ? Math.max(0.0, positionRef.current - POSITION_STEP)
           : Math.min(duration, positionRef.current + POSITION_STEP);
@@ -275,22 +289,26 @@ const ControlPanel =
 
     useKeys(
       [ 'arrowleft', 'arrowright' ],
-      key => onLongSeekEnd(key, positionRef.current),
+      (key, event) => !event.ctrlKey && onLongSeekEnd(key, positionRef.current),
       [ positionRef, onLongSeekEnd ],
       'keyup'
     );
 
     useKeys(
-      [ ' ', 'k' ],
-      () => !isPlaying || isPaused
-        ? play()
-        : pause(),
+      [ ' ', 'arrowup', 'k' ],
+      (key, event) => {
+        if (event.ctrlKey || ('arrowup' !== key)) {
+          !isPlaying || isPaused
+            ? play()
+            : pause()
+        }
+      },
       [ isPlaying, isPaused, play, pause ]
     );
 
     useKeys(
-      'p',
-      () => pinStart(),
+      [ 'arrowdown', 'p' ],
+      (key, event) => (event.ctrlKey || ('arrowdown' !== key)) && pinStart(),
       [ pinStart ]
     );
 

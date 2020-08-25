@@ -84,7 +84,7 @@ When controls are available, and:
 
 * a control panel is displayed and focused (*a keyboard icon is visible in the lower-right corner*), use:
 
-  * `<` / `>` to decrease / increase the playback rate (speed),
+  * `<` / `>` (or `Ctrl` + `←` / `→`) to decrease / increase the playback rate (speed),
 
   * `↓` / `↑` to decrease / increase the playback volume,
 
@@ -96,9 +96,12 @@ When controls are available, and:
 
   * `End` to set the position at the end (think of it more or less as a stop button),
 
-  * `Space` / `k` to play / pause the sound,
+  * `Space` / `k` (or `Ctrl` + `↑`) to play / pause the sound,
 
-  * `p` to "pin" the current position (the sound will start from there from now on).
+  * `p` (or `Ctrl` + `↓`) to "pin" the current position (the sound will start from there from now on).
+
+Shortcuts behind parentheses are provided as an alternative for when the main ones are not available
+(for example, when a "keyboard-aware" word bank is available for the current challenge).
 
 ### Limitations
 
