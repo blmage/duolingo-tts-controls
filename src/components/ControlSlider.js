@@ -103,6 +103,9 @@ const CLASS_NAMES = {
       '_3cbXv',
       '_2RTMn',
       '_3yAjN',
+      // Copied from the text of the "Use keyboard" / "Use word bank" button
+      // (applies a better color on Darklingo++).
+      'yWRY8',
       `${EXTENSION_PREFIX}slider-button`
     ],
     [MIN_BUTTON]: [
@@ -120,8 +123,11 @@ const CLASS_NAMES = {
       `${EXTENSION_PREFIX}slider-input`,
     ],
     [HINT]: [
-      // Copied by searching for the same color as the button, without the hover and pointer styles.
-      '_3dDzT',
+      // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
+      '_3cbXv',
+      // Copied by searching for a class targeted by Darklingo++ to apply a better color ("tertiary"),
+      // while having no effect on the original UI.
+      'kAVeU',
       `${EXTENSION_PREFIX}slider-hint`,
     ],
   },

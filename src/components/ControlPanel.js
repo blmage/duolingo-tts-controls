@@ -515,9 +515,11 @@ const CLASS_NAMES = {
       `${EXTENSION_PREFIX}control-panel`,
     ],
     [WRAPPER__ACTIVE]: [
-      // Copied by searching for the same color as the "Use keyboard" / "Use word bank" button,
-      // but without the hover and pointer styles.
-      '_3dDzT',
+      // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
+      '_3cbXv',
+      // Copied by searching for a class targeted by Darklingo++ to apply a better color ("tertiary"),
+      // while having no effect on the original UI.
+      'kAVeU',
       `${EXTENSION_PREFIX}control-panel_active`,
     ],
     [BUTTONS_WRAPPER]: [
