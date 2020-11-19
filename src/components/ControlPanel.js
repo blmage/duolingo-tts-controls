@@ -351,13 +351,22 @@ const ControlPanel =
           userPosition.current = getHowlPosition(howl);
         };
 
+        // When the original playback buttons are used, the rate is reset to 1. If this happens, force our rate again.
+        const onHowlRate = () => {
+          if ((howl.rate() === 1) && (1 !== rateRef.current)) {
+            howl.rate(rateRef.current);
+          }
+        };
+
         howl.on('play', onHowlPlay);
         howl.on('pause', onHowlPause);
+        howl.on('rate', onHowlRate);
 
         return () => {
           if (howl) {
             howl.off('play', onHowlPlay);
             howl.off('pause', onHowlPause);
+            howl.off('rate', onHowlRate);
           }
         };
       }
