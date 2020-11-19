@@ -297,7 +297,7 @@ const ControlPanel =
     useKeys(
       [ ' ', 'arrowup', 'k' ],
       (key, event) => {
-        if (event.ctrlKey || ('arrowup' !== key)) {
+        if (!event.ctrlKey || ('arrowup' === key)) {
           !isPlaying || isPaused
             ? play()
             : pause()
