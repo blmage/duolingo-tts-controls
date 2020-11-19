@@ -372,6 +372,7 @@ const ControlPanel =
       }
     }, [
       howl,
+      rateRef,
       positionRef,
       setDuration,
       setPlayPosition,
