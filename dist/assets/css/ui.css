@@ -1,34 +1,9 @@
 /* Global styles */
 
-._duo-ttsc_control-form-toggle-button::before,
-._duo-ttsc_slider ._duo-ttsc_slider-button,
-._duo-ttsc_control-panel_active ._duo-ttsc_control-buttons:after,
-._duo-ttsc_control-button-icon {
-    mask-position: 50% 50%;
-    mask-repeat: no-repeat;
-    mask-size: contain;
-    -webkit-mask-position: 50% 50%;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: contain;
-}
-
 ._duo-ttsc_control-form-toggle-button {
     width: 32px;
     height: 32px;
     margin: 10px 0 0;
-}
-
-._duo-ttsc_control-form-toggle-button::before {
-    display: block;
-    content: "";
-    position: absolute;
-    left: 20%;
-    right: 20%;
-    top: 20%;
-    bottom: 20%;
-    background-color: #fff;
-    mask-image: url(../images/settings.svg);
-    -webkit-mask-image: url(../images/settings.svg);
 }
 
 ._duo-ttsc_slider {
@@ -36,15 +11,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 20px 0 0;
+    margin: 32px 0 0;
+}
+
+._duo-ttsc_slider:first-child {
+    margin-top: 24px;
 }
 
 ._duo-ttsc_slider ._duo-ttsc_slider-button {
-    display: block;
-    width: 28px;
-    height: 28px;
-    margin: 0 10px;
-    background-color: currentColor;
+    margin: 0 16px;
 }
 
 ._duo-ttsc_slider ._duo-ttsc_slider-min-button {
@@ -55,45 +30,10 @@
     margin-right: 0;
 }
 
-._duo-ttsc_slider-rate ._duo-ttsc_slider-min-button {
-    mask-image: url(../images/rate-min.svg);
-    -webkit-mask-image: url(../images/rate-min.svg);
-}
-
-._duo-ttsc_slider-rate ._duo-ttsc_slider-max-button {
-    mask-image: url(../images/rate-max.svg);
-    -webkit-mask-image: url(../images/rate-max.svg);
-}
-
-._duo-ttsc_slider-volume ._duo-ttsc_slider-min-button {
-    mask-image: url(../images/volume-min.svg);
-    -webkit-mask-image: url(../images/volume-min.svg);
-}
-
-._duo-ttsc_slider-volume ._duo-ttsc_slider-max-button {
-    mask-image: url(../images/volume-max.svg);
-    -webkit-mask-image: url(../images/volume-max.svg);
-}
-
-._duo-ttsc_slider-position ._duo-ttsc_slider-button {
-    mask-size: 85% 85%;
-    -webkit-mask-size: 85% 85%;
-}
-
-._duo-ttsc_slider-position ._duo-ttsc_slider-min-button {
-    mask-image: url(../images/time-min.svg);
-    -webkit-mask-image: url(../images/time-min.svg);
-}
-
-._duo-ttsc_slider-position ._duo-ttsc_slider-max-button {
-    mask-image: url(../images/time-max.svg);
-    -webkit-mask-image: url(../images/time-max.svg);
-}
-
 ._duo-ttsc_slider-hint {
     position: absolute;
     left: 50%;
-    bottom: 0;
+    bottom: -8px;
     transform: translate(-50%, 80%);
     font-size: 15px;
     font-weight: bold;
@@ -141,52 +81,30 @@
 ._duo-ttsc_control-buttons {
     position: relative;
     display: block !important;
-    margin: 30px 0 0 !important;
+    margin: 36px 0 0 !important;
     text-align: center !important;
 }
 
+._duo-ttsc_control-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+._duo-ttsc_control-panel ._duo-ttsc_control-keyboard-hint {
+    display: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
-    /* Only display the keyboard hint on devices for which a keyboard is likely available. */
-    ._duo-ttsc_control-panel_active ._duo-ttsc_control-buttons:after {
+    ._duo-ttsc_control-panel_active ._duo-ttsc_control-keyboard-hint {
         display: block;
-        content: "";
         position: absolute;
-        right: 0;
+        right: -5px;
         top: 50%;
         transform: translate(0, -15px);
         width: 24px;
         height: 24px;
-        mask-image: url(../images/keyboard.svg);
-        -webkit-mask-image: url(../images/keyboard.svg);
-        background-color: currentColor;
     }
-}
-
-._duo-ttsc_control-button-icon {
-    display: block;
-    width: 100%;
-    height: 50%;
-    background: currentColor;
-}
-
-._duo-ttsc_control-button-play ._duo-ttsc_control-button-icon {
-    mask-image: url(../images/play.svg);
-    -webkit-mask-image: url(../images/play.svg);
-}
-
-._duo-ttsc_control-button-pause ._duo-ttsc_control-button-icon {
-    mask-image: url(../images/pause.svg);
-    -webkit-mask-image: url(../images/pause.svg);
-}
-
-._duo-ttsc_control-button-stop ._duo-ttsc_control-button-icon {
-    mask-image: url(../images/stop.svg);
-    -webkit-mask-image: url(../images/stop.svg);
-}
-
-._duo-ttsc_control-button-pin ._duo-ttsc_control-button-icon {
-    mask-image: url(../images/pin.svg);
-    -webkit-mask-image: url(../images/pin.svg);
 }
 
 /* Styles related to "basic" forms */
@@ -209,11 +127,6 @@
 
 ._duo-ttsc_playback-button-wrapper_basic button {
     pointer-events: all;
-}
-
-._duo-ttsc_challenge-form_basic ._duo-ttsc_control-form-toggle-button_active::before {
-    mask-image: url(../images/close.svg);
-    -webkit-mask-image: url(../images/close.svg);
 }
 
 /* Styles related to "cartoon" forms */

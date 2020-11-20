@@ -1,5 +1,27 @@
 import { h, render } from 'preact';
 import { _, it } from 'param.macro';
+import { library } from '@fortawesome/fontawesome-svg-core';
+
+import {
+  faChevronUp,
+  faKeyboard,
+  faPause,
+  faPlay,
+  faSlidersH,
+  faStop,
+  faThumbtack,
+} from '@fortawesome/free-solid-svg-icons';
+
+import {
+  faHourglassEnd,
+  faHourglassStart,
+  faRabbitFast,
+  faTurtle,
+  faVolumeDown,
+  faVolumeUp
+} from '@fortawesome/pro-light-svg-icons';
+
+import { faCheck } from '@fortawesome/pro-regular-svg-icons';
 
 import {
   discardEvent,
@@ -26,6 +48,24 @@ import {
 
 import ControlPanel from './components/ControlPanel';
 import ToggleButton from './components/ToggleButton';
+
+// Register the FontAwesome icons.
+library.add(
+  faCheck, 
+  faChevronUp,
+  faHourglassEnd,
+  faHourglassStart,
+  faKeyboard,
+  faPause,
+  faPlay,
+  faRabbitFast,
+  faSlidersH,
+  faStop,
+  faThumbtack,
+  faTurtle,
+  faVolumeDown,
+  faVolumeUp,
+);
 
 /**
  * A TTS sound from a practice challenge.

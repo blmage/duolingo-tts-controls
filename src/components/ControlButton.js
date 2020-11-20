@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { noop } from '../functions';
 import { EXTENSION_PREFIX } from '../constants';
 import { BASE, useStyles } from './index';
@@ -9,12 +10,12 @@ export const TYPE_PIN = 'pin';
 export const TYPE_PLAY = 'play';
 export const TYPE_STOP = 'stop';
 
-const TYPES = [
-  TYPE_PAUSE,
-  TYPE_PIN,
-  TYPE_PLAY,
-  TYPE_STOP,
-];
+export const TYPE_ICONS = {
+  [TYPE_PAUSE]: 'pause',
+  [TYPE_PIN]: 'thumbtack',
+  [TYPE_PLAY]: 'play',
+  [TYPE_STOP]: 'stop',
+};
 
 const ControlButton = ({ type, disabled = false, onClick = noop }) => {
   const button = useRef(null);
@@ -40,7 +41,11 @@ const ControlButton = ({ type, disabled = false, onClick = noop }) => {
         onClick={onClick}
         onKeyUp={event => event.preventDefault()}
         className={getElementClassNames(BUTTON)}>
-        <span className={getElementClassNames(ICON)} />
+        <FontAwesomeIcon
+          icon={TYPE_ICONS[type]}
+          size="xs"
+          fixedWidth
+          className={getElementClassNames(ICON)} />
       </button>
     </div>
   )
@@ -84,9 +89,3 @@ const CLASS_NAMES = {
     ]
   },
 };
-
-TYPES.forEach(type => {
-  CLASS_NAMES[type] = {
-    [BUTTON]: [ `${EXTENSION_PREFIX}control-button-${type}` ],
-  };
-});

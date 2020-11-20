@@ -1,6 +1,7 @@
 import { h } from 'preact';
-import { noop } from '../functions';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { EXTENSION_PREFIX, FORM_STYLE_BASIC, FORM_STYLE_CARTOON } from '../constants';
+import { noop } from '../functions';
 import { BASE, useStyles } from './index';
 
 const ToggleButton = ({ formStyle = FORM_STYLE_BASIC, active = false, onClick = noop }) => {
@@ -13,7 +14,9 @@ const ToggleButton = ({ formStyle = FORM_STYLE_BASIC, active = false, onClick = 
       onClick={onClick}
       onKeyDown={event => event.preventDefault()}
       onKeyUp={event => event.preventDefault()}
-      className={getElementClassNames([ BUTTON, buttonState ])} />
+      className={getElementClassNames([ BUTTON, buttonState ])}>
+      <FontAwesomeIcon icon={active ? 'chevron-up' : 'sliders-h'} />
+    </button>
   );
 };
 
@@ -50,7 +53,7 @@ const CLASS_NAMES = {
       '_0Wim',
     ],
   },
-  [FORM_STYLE_CARTOON]: { // todo
+  [FORM_STYLE_CARTOON]: {
     // Copied from the original playback buttons, ignoring the class names that apply dimensions.
     [BUTTON]: [
       '_1oX8u',

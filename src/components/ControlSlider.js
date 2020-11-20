@@ -1,18 +1,31 @@
 import { h } from 'preact';
 import { useCallback, useRef } from 'preact/hooks';
-import { noop } from '../functions';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { EXTENSION_PREFIX } from '../constants';
+import { noop } from '../functions';
 import { BASE, useStyles } from './index';
 
 export const TYPE_POSITION = 'position';
 export const TYPE_RATE = 'rate';
 export const TYPE_VOLUME = 'volume';
 
-const TYPES = [
-  TYPE_POSITION,
-  TYPE_RATE,
-  TYPE_VOLUME,
-];
+const MIN = 'min';
+const MAX = 'max';
+
+export const TYPE_ICONS = {
+  [TYPE_POSITION]: {
+    [MIN]: [ 'fal', 'hourglass-start' ],
+    [MAX]: [ 'fal', 'hourglass-end' ],
+  },
+  [TYPE_RATE]: {
+    [MIN]: [ 'fal', 'turtle' ],
+    [MAX]: [ 'fal', 'rabbit-fast' ],
+  },
+  [TYPE_VOLUME]: {
+    [MIN]: [ 'fal', 'volume-down' ],
+    [MAX]: [ 'fal', 'volume-up' ],
+  },
+};
 
 const ControlSlider =
   ({
@@ -51,7 +64,9 @@ const ControlSlider =
 
     return (
       <div className={getElementClassNames(WRAPPER)}>
-        <span
+        <FontAwesomeIcon
+          icon={TYPE_ICONS[type][MIN]}
+          transform="grow-8"
           onClick={() => onChangeEnd(min)}
           className={getElementClassNames([ BUTTON, MIN_BUTTON ])} />
 
@@ -70,7 +85,9 @@ const ControlSlider =
           onMouseUp={onLastInput}
           className={getElementClassNames(INPUT)} />
 
-        <span
+        <FontAwesomeIcon
+          icon={TYPE_ICONS[type][MAX]}
+          transform="grow-8"
           onClick={() => onChangeEnd(max)}
           className={getElementClassNames([ BUTTON, MAX_BUTTON ])} />
 
@@ -132,9 +149,3 @@ const CLASS_NAMES = {
     ],
   },
 };
-
-TYPES.forEach(type => {
-  CLASS_NAMES[type] = {
-    [WRAPPER]: [ `${EXTENSION_PREFIX}slider-${type}` ],
-  };
-});

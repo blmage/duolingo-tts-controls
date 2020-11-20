@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useInterval, useKeyCi, useStateRef, useThrottledCallback, useUnmount } from 'preact-use';
 import { _ } from 'param.macro';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { discardEvent, isObject } from '../functions';
 import { DIGIT_CHARS, EXTENSION_PREFIX, FORM_STYLE_BASIC } from '../constants';
 
@@ -526,6 +527,13 @@ const ControlPanel =
             type={buttons.TYPE_PIN}
             disabled={!hasSound}
             onClick={pinStart} />
+
+          {active && (
+            <FontAwesomeIcon
+              icon="keyboard"
+              transform="grow-3"
+              className={getElementClassNames(KEYBOARD_HINT)} />
+          )}
         </div>
       </div>
     );
@@ -536,6 +544,7 @@ export default ControlPanel;
 const WRAPPER = 'wrapper';
 const WRAPPER__ACTIVE = 'wrapper__active';
 const BUTTONS_WRAPPER = 'button_wrapper';
+const KEYBOARD_HINT = 'keyboard_hint';
 
 const CLASS_NAMES = {
   [BASE]: {
@@ -555,6 +564,9 @@ const CLASS_NAMES = {
       // The class responsible for the null height is ignored here.
       'gcfYU',
       `${EXTENSION_PREFIX}control-buttons`,
+    ],
+    [KEYBOARD_HINT]: [
+      `${EXTENSION_PREFIX}control-keyboard-hint`,
     ],
   },
 };
