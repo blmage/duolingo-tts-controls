@@ -479,7 +479,8 @@ const ControlPanel =
           hint={rateHint}
           onChangeStart={onRateChange}
           onChange={onRateChange}
-          onChangeEnd={onRateChange} />
+          onChangeEnd={onRateChange}
+        />
 
         <ControlSlider
           type={sliders.TYPE_VOLUME}
@@ -490,7 +491,8 @@ const ControlPanel =
           hint={`${Math.round(volume * 100.0)}%`}
           onChangeStart={onVolumeChange}
           onChange={onVolumeChange}
-          onChangeEnd={onVolumeChange} />
+          onChangeEnd={onVolumeChange}
+        />
 
         <ControlSlider
           type={sliders.TYPE_POSITION}
@@ -502,7 +504,8 @@ const ControlPanel =
           disabled={!hasSound}
           onChangeStart={onLongSeekStart('slider', _)}
           onChange={onSeek}
-          onChangeEnd={onLongSeekEnd('slider', _)} />
+          onChangeEnd={onLongSeekEnd('slider', _)}
+        />
 
         <div className={getElementClassNames(BUTTONS_WRAPPER)}>
           {!isPlaying || isPaused
@@ -510,29 +513,34 @@ const ControlPanel =
               <ControlButton
                 type={buttons.TYPE_PLAY}
                 disabled={!hasSound}
-                onClick={play} />
+                onClick={play}
+              />
             ) : (
               <ControlButton
                 type={buttons.TYPE_PAUSE}
                 disabled={!hasSound}
-                onClick={pause} />
+                onClick={pause}
+              />
             )}
 
           <ControlButton
             type={buttons.TYPE_STOP}
             disabled={!hasSound || !isPlaying}
-            onClick={stop} />
+            onClick={stop}
+          />
 
           <ControlButton
             type={buttons.TYPE_PIN}
             disabled={!hasSound}
-            onClick={pinStart} />
+            onClick={pinStart}
+          />
 
           {active && (
             <FontAwesomeIcon
               icon="keyboard"
               transform="grow-3"
-              className={getElementClassNames(KEYBOARD_HINT)} />
+              className={getElementClassNames(KEYBOARD_HINT)}
+            />
           )}
         </div>
       </div>

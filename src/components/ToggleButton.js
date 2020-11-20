@@ -14,7 +14,8 @@ const ToggleButton = ({ formStyle = FORM_STYLE_BASIC, active = false, onClick = 
       onClick={onClick}
       onKeyDown={event => event.preventDefault()}
       onKeyUp={event => event.preventDefault()}
-      className={getElementClassNames([ BUTTON, buttonState ])}>
+      className={getElementClassNames([ BUTTON, buttonState ])}
+    >
       <FontAwesomeIcon icon={active ? 'chevron-up' : 'sliders-h'} />
     </button>
   );

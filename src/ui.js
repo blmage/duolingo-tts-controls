@@ -51,7 +51,7 @@ import ToggleButton from './components/ToggleButton';
 
 // Register the FontAwesome icons.
 library.add(
-  faCheck, 
+  faCheck,
   faChevronUp,
   faHourglassEnd,
   faHourglassStart,
@@ -176,7 +176,7 @@ setInterval(() => {
         // Disable the "html5" option for TTS sounds, because it prevents us from increasing the volume over 1.0.
         // As per the docs, this option is mostly preferable for large files, so this shouldn't be troublesome.
         let isTtsSound;
-        
+
         if (isPracticeSessionLoading) {
           // Assume that the sound comes from a practice session which has just been loaded.
           // It's hard to see any reason why a large file would be loaded at this point.
@@ -184,7 +184,7 @@ setInterval(() => {
         } else {
           isTtsSound = [ options.src ].flat().some(src => challengeTtsSounds.some(src === it.soundUrl));
         }
-  
+
         if (isTtsSound) {
           options.html5 = false;
         }
@@ -324,7 +324,8 @@ function refreshControlForm(ttsType) {
     <ToggleButton
       formStyle={formStyle}
       active={isActive}
-      onClick={() => toggleControlForm(ttsType)} />,
+      onClick={() => toggleControlForm(ttsType)}
+    />,
     toggleButton.parentElement,
     toggleButton
   );
@@ -334,7 +335,8 @@ function refreshControlForm(ttsType) {
       formStyle={formStyle}
       ttsType={ttsType}
       active={isActive && isFocused}
-      howl={howl} />,
+      howl={howl}
+    />,
     panelWrapper
   );
 }
@@ -497,7 +499,8 @@ function setCurrentChallenge(challengeIndex) {
         <ToggleButton
           formStyle={formStyle}
           active={false}
-          onClick={() => toggleControlForm(ttsType)} />,
+          onClick={() => toggleControlForm(ttsType)}
+        />,
         container,
         placeholder
       );

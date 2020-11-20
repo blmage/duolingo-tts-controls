@@ -173,7 +173,7 @@ export function getHowlPosition(howl) {
 
   for (let i = 0; i < soundIds.length; i++) {
     const sound = howl._soundById(soundIds[i]);
-    
+
     if (!sound._paused) {
       soundId = sound._id;
       break;

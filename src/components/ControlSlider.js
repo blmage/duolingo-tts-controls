@@ -68,7 +68,8 @@ const ControlSlider =
           icon={TYPE_ICONS[type][MIN]}
           transform="grow-8"
           onClick={() => onChangeEnd(min)}
-          className={getElementClassNames([ BUTTON, MIN_BUTTON ])} />
+          className={getElementClassNames([ BUTTON, MIN_BUTTON ])}
+        />
 
         <input
           type="range"
@@ -83,13 +84,15 @@ const ControlSlider =
           onInput={onInput}
           onChange={onLastInput}
           onMouseUp={onLastInput}
-          className={getElementClassNames(INPUT)} />
+          className={getElementClassNames(INPUT)}
+        />
 
         <FontAwesomeIcon
           icon={TYPE_ICONS[type][MAX]}
           transform="grow-8"
           onClick={() => onChangeEnd(max)}
-          className={getElementClassNames([ BUTTON, MAX_BUTTON ])} />
+          className={getElementClassNames([ BUTTON, MAX_BUTTON ])}
+        />
 
         {('' !== hint) && (
           <span className={getElementClassNames(HINT)}>

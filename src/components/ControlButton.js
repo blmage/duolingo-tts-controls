@@ -32,7 +32,7 @@ const ControlButton = ({ type, disabled = false, onClick = noop }) => {
       button.current.blur();
     }
   })
-  
+
   return (
     <div className={getElementClassNames(WRAPPER)}>
       <button
@@ -40,12 +40,14 @@ const ControlButton = ({ type, disabled = false, onClick = noop }) => {
         disabled={disabled}
         onClick={onClick}
         onKeyUp={event => event.preventDefault()}
-        className={getElementClassNames(BUTTON)}>
+        className={getElementClassNames(BUTTON)}
+      >
         <FontAwesomeIcon
           icon={TYPE_ICONS[type]}
           size="xs"
           fixedWidth
-          className={getElementClassNames(ICON)} />
+          className={getElementClassNames(ICON)}
+        />
       </button>
     </div>
   )
@@ -60,7 +62,7 @@ const ICON = 'icon';
 const CLASS_NAMES = {
   [BASE]: {
     // Copied from the direct wrapper of each special letter button provided for some languages (such as French).
-    [WRAPPER]: [ 
+    [WRAPPER]: [
       '_1OCDB',
     ],
     // Copied from the special letter buttons.
