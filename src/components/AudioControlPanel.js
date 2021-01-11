@@ -147,10 +147,10 @@ const AudioControlPanel =
     // Remembers the current playback position as the new starting position.
     const pinStart = useCallback(() => {
       if (audio) {
-        const start = getValidPosition(audio.position);
+        const start = getValidPosition(audioPosition);
         (null !== start) && onPinnedStart(start);
       }
-    }, [ audioPosition, onPinnedStart, getValidPosition ]);
+    }, [ audio, audioPosition, onPinnedStart, getValidPosition ]);
 
     // ------ Keyboard shortcuts ------
 
