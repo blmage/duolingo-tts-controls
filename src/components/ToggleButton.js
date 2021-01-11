@@ -16,7 +16,7 @@ const ToggleButton = ({ formStyle = FORM_STYLE_BASIC, active = false, onClick = 
       onKeyUp={event => event.preventDefault()}
       className={getElementClassNames([ BUTTON, buttonState ])}
     >
-      <FontAwesomeIcon icon={active ? 'chevron-up' : 'sliders-h'} />
+      <FontAwesomeIcon icon={active && (FORM_STYLE_BASIC === formStyle) && 'chevron-up' || 'sliders-h'} />
     </button>
   );
 };
