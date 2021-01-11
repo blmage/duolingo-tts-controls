@@ -144,6 +144,10 @@
 }
 
 ._duo-ttsc_playback-buttons-wrapper_cartoon {
+    padding-bottom: 30px;
+}
+
+._duo-ttsc_playback-buttons-wrapper_cartoon > *:first-child {
     overflow: visible !important;
 }
 
@@ -177,6 +181,10 @@
 }
 
 @media (max-width: 699px) {
+    ._duo-ttsc_playback-buttons-wrapper_cartoon {
+        padding-bottom: 30px;
+    }
+
     ._duo-ttsc_playback-form_cartoon {
         /* Make some room for the control panel. */
         padding-top: 15px;
