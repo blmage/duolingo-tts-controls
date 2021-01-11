@@ -248,3 +248,29 @@ export function applyTtsSettingsToHowlSound(rate, volume, howl) {
     }
   }
 }
+
+/**
+ * Applies the current rate and volume settings of a given TTS type to an <audio> element.
+ *
+ * @param {string} ttsType A TTS type.
+ * @param {HTMLAudioElement} element An <audio> element.
+ */
+export function applyCurrentTtsSettingsToAudioElement(ttsType, element) {
+  applyTtsSettingsToAudioElement(
+    getTtsRate(ttsType),
+    getTtsVolume(ttsType),
+    element
+  );
+}
+
+/**
+ * Applies the given rate and volume to an <audio> element.
+ *
+ * @param {number} rate A playback rate.
+ * @param {number} volume A playback volume.
+ * @param {HTMLAudioElement} element An <audio> element.
+ */
+export function applyTtsSettingsToAudioElement(rate, volume, element) {
+  element.volume = volume;
+  element.playbackRate = rate;
+}

@@ -15,6 +15,9 @@
       "babel-plugin-macros"
     ],
     [
+      "@babel/plugin-proposal-optional-chaining"
+    ],
+    [
       "@babel/plugin-transform-react-jsx",
       {
         "pragma": "h",

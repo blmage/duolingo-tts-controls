@@ -27,27 +27,34 @@ import {
   discardEvent,
   getFocusedInput,
   isArray,
+  isBlob,
   isObject,
   logError,
   toggleElement,
 } from './functions';
 
 import {
-  applyCurrentTtsSettingsToHowlSound,
+  applyCurrentTtsSettingsToAudioElement, applyCurrentTtsSettingsToHowlSound,
   TTS_TYPE_NORMAL,
   TTS_TYPE_SLOW,
+  TTS_TYPES,
 } from './tts';
 
 import {
   EXTENSION_PREFIX,
   FORM_STYLE_BASIC,
-  FORM_STYLE_CARTOON, FORM_STYLES,
+  FORM_STYLE_CARTOON,
+  FORM_STYLES,
   LISTENING_CHALLENGE_TYPES,
-  NEW_SESSION_URL_REGEXP
+  NEW_SESSION_URL_REGEXP,
+  PLAYBACK_STATE_PAUSED,
+  PLAYBACK_STATE_PLAYING,
+  PLAYBACK_STATE_STOPPED,
 } from './constants';
 
-import ControlPanel from './components/ControlPanel';
 import ToggleButton from './components/ToggleButton';
+import AudioControlPanel from './components/AudioControlPanel';
+import HowlControlPanel from './components/HowlControlPanel.js';
 
 // Register the FontAwesome icons.
 library.add(
@@ -74,6 +81,47 @@ library.add(
  * @property {string} ttsType The TTS type of the sound.
  * @property {string} soundUrl The URL of the sound.
  * @property {number} challengeIndex The index of the challenge that uses the sound.
+ */
+
+/**
+ * A TTS sound played directly via <audio> elements.
+ *
+ * @typedef {object} TtsAudio
+ * @property {string} blobUrl The URL of the blob holding the sound.
+ * @property {string} playbackState The current state of the sound.
+ * @property {number} defaultStartPosition At what position the sound should start each time it is played.
+ * @property {number} nextStartPosition At what position the sound should start the next time it is played.
+ * @property {number} position The current playback position in the sound.
+ * @property {number} duration The duration of the sound.
+ * @property {HTMLAudioElement} currentElement? The <audio> element that was last used to play the sound.
+ */
+
+/**
+ * A set of callbacks for TTS sounds played directly via <audio> elements.
+ *
+ * @typedef {object} AudioCallbackSet
+ * @property {Function} onSettingsChange A callback usable to signify that the rate or volume setting changed.
+ * @property {Function} onPlayRequest A callback usable to play the sound.
+ * @property {Function} onPauseRequest A callback usable to pause the sound.
+ * @property {Function} onStopRequest A callback usable to stop the sound.
+ * @property {Function} onSeekRequest A callback usable to seek a new position in the sound.
+ * @property {Function} onPinnedStart A callback usable to define the new default starting position.
+ */
+
+/**
+ * A control form for a TTS sound.
+ *
+ * @typedef {object} ControlForm
+ * @property {string} formStyle The style of the parent challenge form.
+ * @property {string} ttsType The type of the TTS sound controlled by the form.
+ * @property {boolean} isActive Whether the control form is currently displayed.
+ * @property {boolean} isFocused Whether the control form is currently focused (/ can handle keyboard shortcuts).
+ * @property {Element} panelWrapper The wrapper of the control panel.
+ * @property {Element} playbackButton The button usable to play the TTS sound.
+ * @property {Element} toggleButton The button usable to toggle the control form.
+ * @property {?object} howl The "Howl" object used to play the TTS sound, if any.
+ * @property {?TtsAudio} audio The state of the TTS sound, used when it is played directly via <audio> elements.
+ * @property {?AudioCallbackSet} audioCallbacks A set of callbacks usable to manage the TTS sound (see above).
  */
 
 /**
@@ -141,101 +189,6 @@ XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
 };
 
 /**
- * The active "Howl" objects that were initialized by Duolingo, sorted by source.
- *
- * @type {object.<string, object>}
- */
-let initializedHowls = {};
-
-/**
- * The last seen prototype for the "Howl" type from the "howler.js" library.
- *
- * @type {object|null}
- */
-let lastHowlPrototype = null;
-
-// Poll for the "Howl" prototype and override it once it is available.
-setInterval(() => {
-  /* eslint-disable no-undef */
-
-  if (window.Howl && (lastHowlPrototype !== Howl.prototype)) {
-    lastHowlPrototype = Howl.prototype;
-
-    const originalHowlInit = Howl.prototype.init;
-    const originalHowlPlay = Howl.prototype.play;
-
-    Howl.prototype.init = function (options) {
-      try {
-        // Remember each "Howl" object by their source.
-        // This will be useful later to find all the active "Howl" objects for the current challenge.
-        [ options.src ].flat().forEach((initializedHowls[it] = this));
-
-        // The "howler.js" library uses XHR requests to load sounds when using the Web Audio API,
-        // but they fail because of the CORS policy. Unfortunately, there is nothing we can do about this.
-        /*
-        // Disable the "html5" option for TTS sounds, because it prevents us from increasing the volume over 1.0.
-        // As per the docs, this option is mostly preferable for large files, so this shouldn't be troublesome.
-        let isTtsSound;
-
-        if (isPracticeSessionLoading) {
-          // Assume that the sound comes from a practice session which has just been loaded.
-          // It's hard to see any reason why a large file would be loaded at this point.
-          isTtsSound = true;
-        } else {
-          isTtsSound = [ options.src ].flat().some(src => challengeTtsSounds.some(src === it.soundUrl));
-        }
-
-        if (isTtsSound) {
-          options.html5 = false;
-        }
-        */
-      } catch (error) {
-        logError(error, 'Could not handle the initialized "Howl" sound: ');
-      }
-
-      return originalHowlInit.call(this, options);
-    }
-
-    Howl.prototype.play = function (id) {
-      try {
-        if (!id) {
-          const src = String(this._src || this._parent && this._parent._src || '').trim();
-          const challengeSound = challengeTtsSounds.find(src === it.soundUrl);
-
-          if (isObject(challengeSound)) {
-            setCurrentChallenge(challengeSound.challengeIndex);
-          }
-        }
-      } catch (error) {
-        logError(error, 'Could not handle the played "Howl" sound: ');
-      }
-
-      return originalHowlPlay.call(this, id);
-    };
-  }
-}, 50);
-
-// Regularly clean up the obsolete "Howl" objects.
-setInterval(() => {
-  initializedHowls = Object.fromEntries(
-    Object.entries(initializedHowls).filter(it[1].state() !== 'unloaded')
-  );
-}, 60 * 1000);
-
-/**
- * A control form for a TTS sound.
- *
- * @typedef {object} ControlForm
- * @property {string} formStyle The style of the parent challenge form.
- * @property {string} ttsType The type of the TTS sound controlled by the form.
- * @property {boolean} isActive Whether the control form is currently displayed.
- * @property {boolean} isFocused Whether the control form is currently focused (/ can handle keyboard shortcuts).
- * @property {?object} howl The "Howl" object for the controlled TTS sound.
- * @property {Element} panelWrapper The wrapper of the control panel.
- * @property {Element} toggleButton The button usable to toggle the control form.
- */
-
-/**
  * The available control forms for the current challenge, sorted by TTS type.
  *
  * @type {object.<string, ControlForm>}
@@ -287,12 +240,22 @@ function getAvailableTtsTypes() {
 }
 
 /**
+ * @param {string} ttsType A TTS type.
+ * @returns {HTMLAudioElement|null} The <audio> element currently used to play the given TTS sound, if any.
+ */
+const getCurrentControlFormAudioElement = ttsType => (
+  currentControlForms[ttsType]?.audio?.currentElement
+  && (currentControlForms[ttsType].audio.currentElement.src === currentControlForms[ttsType].audio.blobUrl)
+  && currentControlForms[ttsType].audio.currentElement
+  || null
+);
+
+/**
  * @returns {ControlForm|undefined} The active control form, if any.
  */
 function getActiveControlForm() {
   return Object.values(currentControlForms).find(it.isActive);
 }
-
 
 /**
  * @returns {ControlForm|undefined} The focused control form, if any.
@@ -302,7 +265,7 @@ function getFocusedControlForm() {
 }
 
 /**
- * Refreshes the control panel controlling the TTS sound of a given type.
+ * Refreshes the control form controlling the TTS sound of a given type.
  *
  * @param {string} ttsType A TTS type.
  */
@@ -315,9 +278,11 @@ function refreshControlForm(ttsType) {
     formStyle,
     isActive,
     isFocused,
-    howl,
     panelWrapper,
     toggleButton,
+    howl,
+    audio,
+    audioCallbacks,
   } = currentControlForms[ttsType];
 
   render(
@@ -331,12 +296,23 @@ function refreshControlForm(ttsType) {
   );
 
   render(
-    <ControlPanel
-      formStyle={formStyle}
-      ttsType={ttsType}
-      active={isActive && isFocused}
-      howl={howl}
-    />,
+    howl
+      ? (
+        <HowlControlPanel
+          formStyle={formStyle}
+          ttsType={ttsType}
+          active={isActive && isFocused}
+          howl={howl}
+        />
+      ) : (
+        <AudioControlPanel
+          formStyle={formStyle}
+          ttsType={ttsType}
+          active={isActive && isFocused}
+          audio={audio}
+          {...audioCallbacks}
+        />
+      ),
     panelWrapper
   );
 }
@@ -362,7 +338,7 @@ function toggleControlForm(ttsType) {
     toggleElement(activeControlForm.panelWrapper, false);
   }
 
-  if (!activeControlForm || (activeControlForm.ttsType !== ttsType)) {
+  if (activeControlForm?.ttsType !== ttsType) {
     const form = currentControlForms[ttsType];
     form.isActive = true;
     form.isFocused = true;
@@ -395,7 +371,7 @@ function focusActiveControlForm() {
 function blurActiveControlForm() {
   const controlForm = getActiveControlForm();
 
-  if (controlForm && controlForm.isFocused) {
+  if (controlForm?.isFocused) {
     controlForm.isFocused = false;
     refreshControlForm(controlForm.ttsType);
   }
@@ -421,12 +397,11 @@ function cleanUpControlForms(force = false) {
 setInterval(() => cleanUpControlForms(), 50);
 
 /**
- * Sets the new current challenge.
- * If an actual change took place; prepares the UI and the new current TTS data.
+ * Prepares the control forms for the new current challenge, if it has changed since the previous call.
  *
  * @param {number} challengeIndex The index of the new current challenge.
  */
-function setCurrentChallenge(challengeIndex) {
+function prepareControlForms(challengeIndex) {
   let playbackButtonsWrapper;
 
   const formStyle = FORM_STYLES.find(style => {
@@ -442,7 +417,7 @@ function setCurrentChallenge(challengeIndex) {
     lastPlaybackButtonsWrapper = playbackButtonsWrapper;
 
     if (!playbackButtonsWrapper) {
-      return
+      return;
     }
 
     // Find and mark all the required original UI elements.
@@ -462,9 +437,7 @@ function setCurrentChallenge(challengeIndex) {
       playbackButtonsWrapper
     );
 
-    const playbackButtons = playbackButtonWrappers.flatMap(
-      findAndMarkFormElements(PLAYBACK_BUTTON, formStyle, _)
-    );
+    const playbackButtons = playbackButtonWrappers.flatMap(findAndMarkFormElements(PLAYBACK_BUTTON, formStyle, _));
 
     if (!playbackForm || (0 === playbackButtons.length)) {
       return;
@@ -507,14 +480,81 @@ function setCurrentChallenge(challengeIndex) {
 
       placeholder.isConnected && container.removeChild(placeholder);
 
+      let audioCallbacks = null;
+
+      if (!isHowlerUsed) {
+        const withAudio = callback => (
+          currentControlForms[ttsType]?.audio
+          && (panelWrapper === currentControlForms[ttsType].panelWrapper)
+          && callback(currentControlForms[ttsType].audio, getCurrentControlFormAudioElement(ttsType))
+        );
+
+        const onSettingsChange = () => withAudio((_, element) => (
+          element && applyCurrentTtsSettingsToAudioElement(ttsType, element)
+        ));
+
+        const onPlayRequest = () => {
+          playbackButton.click();
+          getOriginalFocusedInput()?.blur();
+        };
+
+        const onPauseRequest = () => withAudio((audio, element) => {
+          audio.playbackState = PLAYBACK_STATE_PAUSED;
+
+          if (element) {
+            audio.nextStartPosition = element.currentTime;
+            element.pause();
+          }
+
+          refreshControlForm(ttsType);
+        });
+
+        const onStopRequest = () => withAudio((audio, element) => {
+          audio.playbackState = PLAYBACK_STATE_STOPPED;
+          audio.nextStartPosition = audio.defaultStartPosition;
+          audio.position = audio.defaultStartPosition;
+          element?.pause();
+          refreshControlForm(ttsType);
+        });
+
+        const onSeekRequest = position => withAudio((audio, element) => {
+          audio.position = position;
+
+          if (PLAYBACK_STATE_PLAYING !== audio.playbackState) {
+            audio.nextStartPosition = position;
+          } else if (element) {
+            element.currentTime = position;
+          }
+
+          refreshControlForm(ttsType);
+        });
+
+        const onPinnedStart = position => withAudio(audio => {
+          audio.defaultStartPosition = position;
+          audio.nextStartPosition = position;
+        });
+
+        audioCallbacks = {
+          onSettingsChange,
+          onPlayRequest,
+          onPauseRequest,
+          onStopRequest,
+          onSeekRequest,
+          onPinnedStart,
+        };
+      }
+
       currentControlForms[ttsType] = {
         formStyle,
         ttsType,
         isActive: false,
         isFocused: false,
-        howl: null,
         panelWrapper,
+        playbackButton,
         toggleButton: container.lastElementChild,
+        howl: null,
+        audio: null,
+        audioCallbacks,
       };
     });
 
@@ -544,6 +584,210 @@ function setCurrentChallenge(challengeIndex) {
     });
   }
 }
+
+/**
+ * Whether the "howler.js" library is used to play the TTS sounds.
+ *
+ * @type {boolean}
+ */
+let isHowlerUsed = false;
+
+/**
+ * The active "Howl" objects that were initialized by Duolingo, sorted by source.
+ *
+ * @type {object.<string, object>}
+ */
+let initializedHowls = {};
+
+/**
+ * The last seen prototype for the "Howl" type from the "howler.js" library.
+ *
+ * @type {object|null}
+ */
+let lastHowlPrototype = null;
+
+// Poll for the "Howl" prototype and override it once it is available.
+setInterval(() => {
+  /* eslint-disable no-undef */
+
+  if (window.Howl && (lastHowlPrototype !== Howl.prototype)) {
+    lastHowlPrototype = Howl.prototype;
+
+    const originalHowlInit = Howl.prototype.init;
+    const originalHowlPlay = Howl.prototype.play;
+
+    Howl.prototype.init = function (options) {
+      try {
+        // Remember each "Howl" object by their source.
+        // This will be useful later to find all the active "Howl" objects for the current challenge.
+        [ options.src ].flat().forEach((initializedHowls[it] = this));
+      } catch (error) {
+        logError(error, 'Could not handle the initialized "Howl" sound: ');
+      }
+
+      return originalHowlInit.call(this, options);
+    }
+
+    Howl.prototype.play = function (id) {
+      try {
+        if (!id) {
+          const src = String(this._src || this._parent && this._parent._src || '').trim();
+          const challengeSound = challengeTtsSounds.find(src === it.soundUrl);
+
+          if (isObject(challengeSound)) {
+            isHowlerUsed = true;
+            prepareControlForms(challengeSound.challengeIndex);
+          }
+        }
+      } catch (error) {
+        logError(error, 'Could not handle the played "Howl" sound: ');
+      }
+
+      return originalHowlPlay.call(this, id);
+    };
+  }
+}, 50);
+
+// Regularly clean up the obsolete "Howl" objects.
+setInterval(() => {
+  initializedHowls = Object.fromEntries(
+    Object.entries(initializedHowls).filter(it[1].state() !== 'unloaded')
+  );
+}, 60 * 1000);
+
+/**
+ * @type {Function}
+ */
+const originalFetch = window.fetch;
+
+/**
+ * @type {Function}
+ */
+const originalCreateObjectUrl = URL.createObjectURL;
+
+/**
+ * A map from blobs holding TTS sounds to the corresponding URLs.
+ *
+ * @type {WeakMap.<Blob, string>}
+ */
+let ttsBlobToBlobUrl = new WeakMap();
+
+/**
+ * A map from URLs of blobs holding TTS sounds to the original URLs of the sounds.
+ *
+ * @type {Object.<string, string>}
+ */
+let ttsBlobUrlToSoundUrl = {};
+
+// Enforce stable URLs for TTS sound blobs, to be able to later identify them.
+
+// Returns a stable URL for blobs holding TTS sounds.
+URL.createObjectURL = function (object) {
+  return isBlob(object) && ttsBlobToBlobUrl.has(object)
+    ? ttsBlobToBlobUrl.get(object)
+    : originalCreateObjectUrl.call(this, object);
+}
+
+// Make responses for TTS sounds return a stable Blob.
+window.fetch = function (resource, init) {
+  return originalFetch.call(this, resource, init)
+    .then(response => {
+      const originalResponse = response.clone();
+
+      return response.blob()
+        .then(blob => {
+          if (
+            (blob.type.indexOf('audio') === 0)
+            && challengeTtsSounds.some(response.url === it.soundUrl)
+          ) {
+            const blobUrl = URL.createObjectURL(blob);
+            ttsBlobToBlobUrl.set(blob, blobUrl);
+            ttsBlobUrlToSoundUrl[blobUrl] = response.url;
+            // By default, blob() returns a new Blob each time.
+            originalResponse.blob = async () => blob;
+          }
+
+          return originalResponse;
+        })
+        .catch(() => originalResponse)
+    })
+}
+
+/**
+ * @type {Function}
+ */
+const originalAudioPlay = Audio.prototype.play;
+
+Audio.prototype.play = function () {
+  if (isHowlerUsed) {
+    return originalAudioPlay.call(this);
+  }
+
+  try {
+    const challengeSound = challengeTtsSounds.find(
+      (this.src === it.soundUrl)
+      || (ttsBlobUrlToSoundUrl[this.src] === it.soundUrl)
+    );
+
+    if (isObject(challengeSound)) {
+      const ttsType = challengeSound.ttsType;
+
+      prepareControlForms(challengeSound.challengeIndex);
+
+      if (currentControlForms[ttsType]) {
+        applyCurrentTtsSettingsToAudioElement(ttsType, this);
+
+        const controlForm = currentControlForms[ttsType];
+
+        if (!controlForm.audio) {
+          controlForm.audio = {
+            blobUrl: this.src,
+            defaultStartPosition: 0,
+            nextStartPosition: 0,
+            position: this.currentTime,
+            duration: this.duration || 0,
+          };
+        }
+
+        if (controlForm.audio.nextStartPosition > 0) {
+          this.currentTime = controlForm.audio.nextStartPosition;
+          controlForm.audio.nextStartPosition = controlForm.audio.defaultStartPosition;
+        }
+
+        controlForm.audio.playbackState = PLAYBACK_STATE_PLAYING;
+        controlForm.audio.currentElement = this;
+
+        refreshControlForm(challengeSound.ttsType);
+      }
+    }
+  } catch (error) {
+    logError(error, 'Could not handle the played audio: ');
+  }
+
+  return originalAudioPlay.call(this);
+};
+
+// Regularly check whether a sound is being played or has just ended, and refresh the corresponding control form.
+setInterval(() => TTS_TYPES.forEach(ttsType => {
+  const audio = currentControlForms[ttsType]?.audio;
+
+  if (audio && (PLAYBACK_STATE_PLAYING === audio.playbackState)) {
+    const audioElement = getCurrentControlFormAudioElement(ttsType);
+
+    if (audioElement) {
+      audio.duration = audio.duration || audioElement.duration || 0;
+    }
+
+    if (audioElement && !audioElement.ended && !audioElement.paused) {
+      audio.position = audioElement.currentTime;
+    } else {
+      audio.playbackState = PLAYBACK_STATE_STOPPED;
+      audio.position = audio.nextStartPosition;
+    }
+
+    refreshControlForm(ttsType);
+  }
+}), 75);
 
 // Allow control forms to handle keyboard shortcuts only when no input from the original UI is focused.
 
@@ -762,7 +1006,7 @@ const ELEMENT_SELECTORS = {
   // Use [ancestor_class]:first-child here to make sure we target the right form.
   [PLAYBACK_BUTTONS_WRAPPER]: {
     [FORM_STYLE_BASIC]: '._863KE:first-child ._3L7Fu',
-    [FORM_STYLE_CARTOON]: '._863KE:first-child ._1b8Ja, ._863KE:first-child ._1Q4WV',
+    [FORM_STYLE_CARTOON]: '._863KE:first-child ._13VDF',
   },
   // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {

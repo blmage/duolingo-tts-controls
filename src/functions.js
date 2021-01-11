@@ -23,6 +23,14 @@ export function isArray(value) {
 }
 
 /**
+ * @param {*} value The tested value.
+ * @returns {boolean} Whether the given value is a blob.
+ */
+export function isBlob(value) {
+  return (value instanceof Blob) || (Object.prototype.toString.call(value) === '[object Blob]');
+}
+
+/**
  * @param {Element} element The element to toggle.
  * @param {boolean|null} displayed The state of the element, if it should be forced.
  */

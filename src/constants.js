@@ -59,3 +59,46 @@ export const FORM_STYLES = [
   FORM_STYLE_BASIC,
   FORM_STYLE_CARTOON,
 ];
+
+/**
+ * The playback state of played sounds.
+ *
+ * @type {string}
+ */
+export const PLAYBACK_STATE_PLAYING = 'playing';
+
+/**
+ * The playback state of paused sounds.
+ *
+ * @type {string}
+ */
+export const PLAYBACK_STATE_PAUSED = 'paused';
+
+/**
+ * The playback state of stopped sounds.
+ *
+ * @type {string}
+ */
+export const PLAYBACK_STATE_STOPPED = 'stopped';
+
+
+/**
+ * The amount by which to decrease/increase the playback rate on a single step.
+ *
+ * @type {number}
+ */
+export const RATE_STEP = 0.1;
+
+/**
+ * The amount by which to decrease/increase the playback volume on a single step.
+ *
+ * @type {number}
+ */
+export const VOLUME_STEP = 0.05;
+
+/**
+ * The amount by which to decrease/increase the playback position on a single step.
+ *
+ * @type {number}
+ */
+export const POSITION_STEP = 0.1;

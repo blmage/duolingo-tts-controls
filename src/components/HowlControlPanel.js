@@ -4,7 +4,15 @@ import { useInterval, useKeyCi, useStateRef, useThrottledCallback, useUnmount } 
 import { _ } from 'param.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { discardEvent, isObject } from '../functions';
-import { DIGIT_CHARS, EXTENSION_PREFIX, FORM_STYLE_BASIC } from '../constants';
+
+import {
+  DIGIT_CHARS,
+  EXTENSION_PREFIX,
+  FORM_STYLE_BASIC,
+  POSITION_STEP,
+  RATE_STEP,
+  VOLUME_STEP,
+} from '../constants';
 
 import {
   applyTtsSettingsToHowlSound,
@@ -23,27 +31,7 @@ import { BASE, useStyles } from './index';
 import ControlButton, * as buttons from './ControlButton';
 import ControlSlider, * as sliders from './ControlSlider';
 
-/**
- * The amount by which to decrease/increase the playback rate on a single step.
- *
- * @type {number}
- */
-const RATE_STEP = 0.1;
-
-/**
- * The amount by which to decrease/increase the playback volume on a single step.
- *
- * @type {number}
- */
-const VOLUME_STEP = 0.05;
-
-/**
- *
- * @type {number}
- */
-const POSITION_STEP = 0.1;
-
-const ControlPanel =
+const HowlControlPanel =
   ({
      formStyle = FORM_STYLE_BASIC,
      ttsType = TTS_TYPE_NORMAL,
@@ -151,7 +139,7 @@ const ControlPanel =
       onSeek(raw);
 
       if (1 === activeSeekActions.current.size) {
-        // There is no other long-running seek action: pause the sound if it's playing, and remember its state.
+        // We just started a long-running seek: pause the sound if it's playing, and remember its state.
         if (howl && isPlaying) {
           wasPlayingBeforeSeeking.current = !isPaused;
           howl.pause();
@@ -286,6 +274,7 @@ const ControlPanel =
         }
       },
       [ duration, positionRef, onSeek, onLongSeekStart ],
+      'keydown'
     );
 
     useKeys(
@@ -298,7 +287,10 @@ const ControlPanel =
     useKeys(
       [ ' ', 'arrowup', 'k' ],
       (key, event) => {
-        if (!event.ctrlKey || ('arrowup' === key)) {
+        if (
+          (!event.ctrlKey && ('arrowup' !== key))
+          || (event.ctrlKey && ('arrowup' === key))
+        ) {
           !isPlaying || isPaused
             ? play()
             : pause()
@@ -458,7 +450,7 @@ const ControlPanel =
 
     const hasSound = isObject(howl);
 
-    const rateHint = rate === 1
+    const rateHint = 1 === rate
       ? '1x'
       : `${rate.toFixed(1)}x`;
 
@@ -547,7 +539,7 @@ const ControlPanel =
     );
   };
 
-export default ControlPanel;
+export default HowlControlPanel;
 
 const WRAPPER = 'wrapper';
 const WRAPPER__ACTIVE = 'wrapper__active';
