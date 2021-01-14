@@ -88,11 +88,11 @@ library.add(
  *
  * @typedef {object} TtsAudio
  * @property {string} blobUrl The URL of the blob holding the sound.
+ * @property {number} duration The duration of the sound.
  * @property {string} playbackState The current state of the sound.
  * @property {number} defaultStartPosition At what position the sound should start each time it is played.
  * @property {number} nextStartPosition At what position the sound should start the next time it is played.
  * @property {number} position The current playback position in the sound.
- * @property {number} duration The duration of the sound.
  * @property {HTMLAudioElement} currentElement? The <audio> element that was last used to play the sound.
  */
 
@@ -238,6 +238,18 @@ function findAndMarkFormElements(elementType, formStyle, parentElement = documen
 function getAvailableTtsTypes() {
   return Object.keys(currentControlForms);
 }
+
+/**
+ * @param {HTMLAudioElement} element An <audio> element.
+ * @returns {Object}
+ */
+const getAudioElementData = element => ({
+  blobUrl: element.src,
+  duration: element.duration || 0,
+  defaultStartPosition: 0,
+  nextStartPosition: 0,
+  position: element.currentTime || 0,
+});
 
 /**
  * @param {string} ttsType A TTS type.
@@ -740,13 +752,34 @@ Audio.prototype.play = function () {
         const controlForm = currentControlForms[ttsType];
 
         if (!controlForm.audio) {
-          controlForm.audio = {
-            blobUrl: this.src,
-            defaultStartPosition: 0,
-            nextStartPosition: 0,
-            position: this.currentTime,
-            duration: this.duration || 0,
-          };
+          controlForm.audio = getAudioElementData(this);
+
+          // Preload the slow TTS audio data, so that the control form is fully usable from the start.
+          if ((TTS_TYPE_NORMAL === ttsType) && currentControlForms[TTS_TYPE_SLOW]) {
+            const slowControlForm = currentControlForms[TTS_TYPE_SLOW];
+
+            const slowTtsSound = challengeTtsSounds.find(
+              (TTS_TYPE_SLOW === it.ttsType)
+              && (challengeSound.challengeIndex === it.challengeIndex)
+            );
+
+            const slowBlobUrl = slowTtsSound
+              && Object.entries(ttsBlobUrlToSoundUrl)
+                .filter(slowTtsSound.soundUrl === it[1])
+                .map(it[0])[0];
+
+            if (slowBlobUrl) {
+              setTimeout(() => {
+                const slowAudio = new Audio(slowBlobUrl);
+
+                slowAudio.addEventListener('loadedmetadata', () => {
+                  slowControlForm.audio = slowControlForm.audio || getAudioElementData(slowAudio);
+                });
+
+                slowAudio.load();
+              });
+            }
+          }
         }
 
         if (controlForm.audio.nextStartPosition > 0) {
