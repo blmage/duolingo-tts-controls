@@ -241,7 +241,7 @@ function getAvailableTtsTypes() {
 
 /**
  * @param {HTMLAudioElement} element An <audio> element.
- * @returns {Object}
+ * @returns {Object} A set of data about the corresponding sound.
  */
 const getAudioElementData = element => ({
   blobUrl: element.src,
