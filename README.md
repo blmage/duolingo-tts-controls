@@ -24,6 +24,7 @@ A small browser extension providing **playback controls** for the **listening ch
 
 * [**Chrome** extension](https://chrome.google.com/webstore/detail/duolingo-tts-controls/hfgbpmknceenkbljmjlogkmhbpnbiika)
 * [**Firefox** add-on](https://addons.mozilla.org/firefox/addon/duolingo-tts-controls/)
+* [**Opera** addon](https://addons.opera.com/fr/extensions/details/duolingo-tts-controls/)
 
 ### Features
 
