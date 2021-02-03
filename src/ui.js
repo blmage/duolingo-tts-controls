@@ -186,7 +186,7 @@ XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
             }
           });
 
-          pendingSoundPlaybackCallbacks.forEach(it());
+          pendingSoundPlaybackCallbacks.forEach(it()); // eslint-disable-line jest/expect-expect, jest/no-disabled-tests
           pendingSoundPlaybackCallbacks = [];
         }
       } catch (error) {
