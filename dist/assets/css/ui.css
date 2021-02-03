@@ -44,6 +44,8 @@
     width: 110px;
     height: 16px;
     --height: 16px;
+    --web-ui_internal_progress-bar-height: 16px;
+    color: var(--web-ui_progress-bar-color, #58cc02);
     overflow: hidden;
     -webkit-appearance: none;
 }
