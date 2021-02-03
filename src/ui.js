@@ -732,8 +732,19 @@ window.fetch = function (resource, init) {
             const blobUrl = URL.createObjectURL(blob);
             ttsBlobToBlobUrl.set(blob, blobUrl);
             ttsBlobUrlToSoundUrl[blobUrl] = response.url;
+
             // By default, blob() returns a new Blob each time.
-            originalResponse.blob = async () => blob;
+            const patchResponse = response => {
+              response.blob = async () => blob;
+
+              response.clone = function () {
+                return patchResponse(Response.prototype.clone.call(this));
+              };
+
+              return response;
+            };
+
+            patchResponse(originalResponse);
           }
 
           return originalResponse;
