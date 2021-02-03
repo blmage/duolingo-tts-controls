@@ -236,7 +236,11 @@ const AudioControlPanel =
 
     useKeys(
       [ 'arrowleft', 'arrowright' ],
-      (key, event) => !event.ctrlKey && onLongSeekEnd(key, seekedPositionRef.current),
+      (key, event) => (
+        !event.ctrlKey
+        && (null !== seekedPositionRef.current)
+        && onLongSeekEnd(key, seekedPositionRef.current)
+      ),
       [ seekedPositionRef, onLongSeekEnd ],
       'keyup'
     );

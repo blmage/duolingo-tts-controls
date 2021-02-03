@@ -279,7 +279,11 @@ const HowlControlPanel =
 
     useKeys(
       [ 'arrowleft', 'arrowright' ],
-      (key, event) => !event.ctrlKey && onLongSeekEnd(key, positionRef.current),
+      (key, event) => (
+        !event.ctrlKey
+        && (null !== positionRef.current)
+        && onLongSeekEnd(key, positionRef.current)
+      ),
       [ positionRef, onLongSeekEnd ],
       'keyup'
     );
