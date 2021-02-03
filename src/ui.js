@@ -139,6 +139,13 @@ let challengeTtsSounds = [];
 let isPracticeSessionLoading = false
 
 /**
+ * A list of callbacks usable to handle the sound playbacks that occurred when a practice session was loading.
+ *
+ * @type {Function[]}
+ */
+let pendingSoundPlaybackCallbacks = [];
+
+/**
  * @type {Function}
  */
 const originalXhrOpen = XMLHttpRequest.prototype.open;
@@ -178,6 +185,9 @@ XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
               }
             }
           });
+
+          pendingSoundPlaybackCallbacks.forEach(it());
+          pendingSoundPlaybackCallbacks = [];
         }
       } catch (error) {
         logError('Could not handle the new session data: ');
@@ -644,12 +654,19 @@ setInterval(() => {
       try {
         if (!id) {
           const src = String(this._src || this._parent && this._parent._src || '').trim();
-          const challengeSound = challengeTtsSounds.find(src === it.soundUrl);
 
-          if (isObject(challengeSound)) {
-            isHowlerUsed = true;
-            prepareControlForms(challengeSound.challengeIndex);
-          }
+          const playbackCallback = () => {
+            const challengeSound = challengeTtsSounds.find(src === it.soundUrl);
+
+            if (isObject(challengeSound)) {
+              isHowlerUsed = true;
+              prepareControlForms(challengeSound.challengeIndex);
+            }
+          };
+
+          !isPracticeSessionLoading
+            ? playbackCallback()
+            : pendingSoundPlaybackCallbacks.push(playbackCallback);
         }
       } catch (error) {
         logError(error, 'Could not handle the played "Howl" sound: ');
@@ -735,67 +752,75 @@ Audio.prototype.play = function () {
     return originalAudioPlay.call(this);
   }
 
-  try {
-    const challengeSound = challengeTtsSounds.find(
-      (this.src === it.soundUrl)
-      || (ttsBlobUrlToSoundUrl[this.src] === it.soundUrl)
-    );
+  const playbackCallback = () => {
+    try {
+      const challengeSound = challengeTtsSounds.find(
+        (this.src === it.soundUrl)
+        || (ttsBlobUrlToSoundUrl[this.src] === it.soundUrl)
+      );
 
-    if (isObject(challengeSound)) {
-      const ttsType = challengeSound.ttsType;
+      if (isObject(challengeSound)) {
+        const ttsType = challengeSound.ttsType;
 
-      prepareControlForms(challengeSound.challengeIndex);
+        prepareControlForms(challengeSound.challengeIndex);
 
-      if (currentControlForms[ttsType]) {
-        applyCurrentTtsSettingsToAudioElement(ttsType, this);
+        if (currentControlForms[ttsType]) {
+          applyCurrentTtsSettingsToAudioElement(ttsType, this);
 
-        const controlForm = currentControlForms[ttsType];
+          const controlForm = currentControlForms[ttsType];
 
-        if (!controlForm.audio) {
-          controlForm.audio = getAudioElementData(this);
+          if (!controlForm.audio) {
+            controlForm.audio = getAudioElementData(this);
 
-          // Preload the slow TTS audio data, so that the control form is fully usable from the start.
-          if ((TTS_TYPE_NORMAL === ttsType) && currentControlForms[TTS_TYPE_SLOW]) {
-            const slowControlForm = currentControlForms[TTS_TYPE_SLOW];
+            // Preload the slow TTS audio data, so that the control form is fully usable from the start.
+            if ((TTS_TYPE_NORMAL === ttsType) && currentControlForms[TTS_TYPE_SLOW]) {
+              const slowControlForm = currentControlForms[TTS_TYPE_SLOW];
 
-            const slowTtsSound = challengeTtsSounds.find(
-              (TTS_TYPE_SLOW === it.ttsType)
-              && (challengeSound.challengeIndex === it.challengeIndex)
-            );
+              const slowTtsSound = challengeTtsSounds.find(
+                (TTS_TYPE_SLOW === it.ttsType)
+                && (challengeSound.challengeIndex === it.challengeIndex)
+              );
 
-            const slowBlobUrl = slowTtsSound
-              && Object.entries(ttsBlobUrlToSoundUrl)
-                .filter(slowTtsSound.soundUrl === it[1])
-                .map(it[0])[0];
+              const slowSoundUrl = slowTtsSound
+                && Object.entries(ttsBlobUrlToSoundUrl)
+                  .filter(slowTtsSound.soundUrl === it[1])
+                  .map(it[0])[0]
+                || slowTtsSound.soundUrl;
 
-            if (slowBlobUrl) {
-              setTimeout(() => {
-                const slowAudio = new Audio(slowBlobUrl);
+              if (slowSoundUrl) {
+                setTimeout(() => {
+                  const slowAudio = new Audio(slowSoundUrl);
 
-                slowAudio.addEventListener('loadedmetadata', () => {
-                  slowControlForm.audio = slowControlForm.audio || getAudioElementData(slowAudio);
+                  slowAudio.addEventListener('loadedmetadata', () => {
+                    slowControlForm.audio = slowControlForm.audio || getAudioElementData(slowAudio);
+                  });
+
+                  slowAudio.load();
                 });
-
-                slowAudio.load();
-              });
+              }
             }
           }
+
+          if (controlForm.audio.nextStartPosition > 0) {
+            this.currentTime = controlForm.audio.nextStartPosition;
+            controlForm.audio.nextStartPosition = controlForm.audio.defaultStartPosition;
+          }
+
+          controlForm.audio.blobUrl = this.src;
+          controlForm.audio.playbackState = PLAYBACK_STATE_PLAYING;
+          controlForm.audio.currentElement = this;
+
+          refreshControlForm(challengeSound.ttsType);
         }
-
-        if (controlForm.audio.nextStartPosition > 0) {
-          this.currentTime = controlForm.audio.nextStartPosition;
-          controlForm.audio.nextStartPosition = controlForm.audio.defaultStartPosition;
-        }
-
-        controlForm.audio.playbackState = PLAYBACK_STATE_PLAYING;
-        controlForm.audio.currentElement = this;
-
-        refreshControlForm(challengeSound.ttsType);
       }
+    } catch (error) {
+      logError(error, 'Could not handle the played audio: ');
     }
-  } catch (error) {
-    logError(error, 'Could not handle the played audio: ');
-  }
+  };
+
+  !isPracticeSessionLoading
+    ? playbackCallback()
+    : pendingSoundPlaybackCallbacks.push(playbackCallback);
 
   return originalAudioPlay.call(this);
 };
