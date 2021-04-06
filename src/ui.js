@@ -1075,7 +1075,7 @@ const ELEMENT_SELECTORS = {
   // Use [ancestor_class]:first-child here to make sure we target the right form.
   [PLAYBACK_BUTTONS_WRAPPER]: {
     [FORM_STYLE_BASIC]: '._863KE:first-child ._3L7Fu',
-    [FORM_STYLE_CARTOON]: '._863KE:first-child ._13VDF',
+    [FORM_STYLE_CARTOON]: '._863KE:first-child ._2O14B',
   },
   // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {

@@ -1,6 +1,6 @@
 {
   "name": "Duolingo TTS Controls",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Provides playback controls for the listening challenges on Duolingo.",
   "permissions": [
     "activeTab",
