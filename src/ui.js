@@ -1,112 +1,33 @@
 import { h, render } from 'preact';
-import { _, it } from 'param.macro';
+import { _, it } from 'one-liner.macro';
 import { library } from '@fortawesome/fontawesome-svg-core';
-
-import {
-  faChevronUp,
-  faKeyboard,
-  faPause,
-  faPlay,
-  faSlidersH,
-  faStop,
-  faThumbtack,
-} from '@fortawesome/free-solid-svg-icons';
-
-import {
-  faHourglassEnd,
-  faHourglassStart,
-  faRabbitFast,
-  faTurtle,
-  faVolumeDown,
-  faVolumeUp
-} from '@fortawesome/pro-light-svg-icons';
-
-import { faCheck } from '@fortawesome/pro-regular-svg-icons';
-
-import {
-  discardEvent,
-  getFocusedInput,
-  isArray,
-  isBlob,
-  isObject,
-  logError,
-  toggleElement,
-} from './functions';
-
-import {
-  applyCurrentTtsSettingsToAudioElement, applyCurrentTtsSettingsToHowlSound,
-  TTS_TYPE_NORMAL,
-  TTS_TYPE_SLOW,
-  TTS_TYPES,
-} from './tts';
-
-import {
-  EXTENSION_PREFIX,
-  FORM_STYLE_BASIC,
-  FORM_STYLE_CARTOON,
-  FORM_STYLES,
-  LISTENING_CHALLENGE_TYPES,
-  NEW_SESSION_URL_REGEXP,
-  PLAYBACK_STATE_PAUSED,
-  PLAYBACK_STATE_PLAYING,
-  PLAYBACK_STATE_STOPPED,
-} from './constants';
-
-import ToggleButton from './components/ToggleButton';
-import AudioControlPanel from './components/AudioControlPanel';
-import HowlControlPanel from './components/HowlControlPanel.js';
+import { faCog, faKeyboard, faPause, faPlay, faStop, faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faTachometerAlt, faVolume } from '@fortawesome/pro-regular-svg-icons';
+import { faTurtle, faVolume as fasVolume } from '@fortawesome/pro-solid-svg-icons';
+import { isObject, isString, noop } from 'duo-toolbox/utils/functions';
+import { discardEvent, getFocusedInput } from 'duo-toolbox/utils/ui';
+import { onPracticeChallengesLoaded, onSoundInitialized, onSoundPlaybackRequested } from 'duo-toolbox/duo/events';
+import { SOUND_PLAYBACK_STRATEGY_HOWLER, SOUND_SPEED_NORMAL, SOUND_SPEED_SLOW } from 'duo-toolbox/duo/sounds';
+import { MUTEX_HOTKEYS, PRIORITY_AVERAGE, requestMutex } from 'duo-toolbox/extension/ui';
+import { EXTENSION_PREFIX, FORM_STYLE_BASIC, FORM_STYLE_CARTOON, FORM_STYLES } from './constants';
+import ControlButton, { TYPE_SPEED_NORMAL, TYPE_SPEED_SLOW } from './components/ControlButton';
+import ControlPanel from './components/ControlPanel.js';
+import { applyCurrentTtsSettingsToHowlSound } from "./tts";
 
 // Register the FontAwesome icons.
 library.add(
-  faCheck,
-  faChevronUp,
-  faHourglassEnd,
-  faHourglassStart,
+  faClock,
+  faCog,
   faKeyboard,
   faPause,
   faPlay,
-  faRabbitFast,
-  faSlidersH,
   faStop,
+  faTachometerAlt,
   faThumbtack,
   faTurtle,
-  faVolumeDown,
-  faVolumeUp,
+  faVolume,
+  fasVolume,
 );
-
-/**
- * A TTS sound from a practice challenge.
- *
- * @typedef {object} ChallengeTtsSound
- * @property {string} ttsType The TTS type of the sound.
- * @property {string} soundUrl The URL of the sound.
- * @property {number} challengeIndex The index of the challenge that uses the sound.
- */
-
-/**
- * A TTS sound played directly via <audio> elements.
- *
- * @typedef {object} TtsAudio
- * @property {string} blobUrl The URL of the blob holding the sound.
- * @property {number} duration The duration of the sound.
- * @property {string} playbackState The current state of the sound.
- * @property {number} defaultStartPosition At what position the sound should start each time it is played.
- * @property {number} nextStartPosition At what position the sound should start the next time it is played.
- * @property {number} position The current playback position in the sound.
- * @property {HTMLAudioElement} currentElement? The <audio> element that was last used to play the sound.
- */
-
-/**
- * A set of callbacks for TTS sounds played directly via <audio> elements.
- *
- * @typedef {object} AudioCallbackSet
- * @property {Function} onSettingsChange A callback usable to signify that the rate or volume setting changed.
- * @property {Function} onPlayRequest A callback usable to play the sound.
- * @property {Function} onPauseRequest A callback usable to pause the sound.
- * @property {Function} onStopRequest A callback usable to stop the sound.
- * @property {Function} onSeekRequest A callback usable to seek a new position in the sound.
- * @property {Function} onPinnedStart A callback usable to define the new default starting position.
- */
 
 /**
  * A control form for a TTS sound.
@@ -114,122 +35,58 @@ library.add(
  * @typedef {object} ControlForm
  * @property {string} formStyle The style of the parent challenge form.
  * @property {string} ttsType The type of the TTS sound controlled by the form.
- * @property {boolean} isActive Whether the control form is currently displayed.
+ * @property {boolean} isSelected Whether the control form is currently selected.
  * @property {boolean} isFocused Whether the control form is currently focused (/ can handle keyboard shortcuts).
  * @property {Element} panelWrapper The wrapper of the control panel.
- * @property {Element} playbackButton The button usable to play the TTS sound.
- * @property {Element} toggleButton The button usable to toggle the control form.
- * @property {?object} howl The "Howl" object used to play the TTS sound, if any.
- * @property {?TtsAudio} audio The state of the TTS sound, used when it is played directly via <audio> elements.
- * @property {?AudioCallbackSet} audioCallbacks A set of callbacks usable to manage the TTS sound (see above).
+ * @property {Element} playbackButton The original button that can be used to play the sound.
+ * @property {object} soundData Data about the controlled sound, including the sound to be played.
  */
 
 /**
- * The TTS sounds used by the challenges of the current practice session.
- *
- * @type {ChallengeTtsSound[]}
- */
-let challengeTtsSounds = [];
-
-/**
- * Whether a new practice session is currently being loaded.
- *
- * @type {boolean}
- */
-let isPracticeSessionLoading = false
-
-/**
- * A list of callbacks usable to handle the sound playbacks that occurred when a practice session was loading.
- *
- * @type {Function[]}
- */
-let pendingSoundPlaybackCallbacks = [];
-
-/**
- * @type {Function}
- */
-const originalXhrOpen = XMLHttpRequest.prototype.open;
-
-// Catch the requests to load new practice sessions, remember the TTS sounds their challenges use.
-XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
-  if (url.match(NEW_SESSION_URL_REGEXP)) {
-    isPracticeSessionLoading = true;
-
-    this.addEventListener('load', () => {
-      try {
-        isPracticeSessionLoading = false; // eslint-disable-line no-unused-vars
-
-        const data = isObject(this.response)
-          ? this.response
-          : JSON.parse(this.responseText);
-
-        if (isObject(data) && isArray(data.challenges)) {
-          challengeTtsSounds = [];
-
-          data.challenges.forEach((challenge, challengeIndex) => {
-            if (LISTENING_CHALLENGE_TYPES.indexOf(challenge.type) >= 0) {
-              if (challenge.tts) {
-                challengeTtsSounds.push({
-                  ttsType: TTS_TYPE_NORMAL,
-                  soundUrl: String(challenge.tts).trim(),
-                  challengeIndex,
-                });
-              }
-
-              if (challenge.slowTts) {
-                challengeTtsSounds.push({
-                  ttsType: TTS_TYPE_SLOW,
-                  soundUrl: String(challenge.slowTts).trim(),
-                  challengeIndex,
-                });
-              }
-            }
-          });
-
-          pendingSoundPlaybackCallbacks.forEach(it()); // eslint-disable-line jest/expect-expect, jest/no-disabled-tests
-          pendingSoundPlaybackCallbacks = [];
-        }
-      } catch (error) {
-        logError('Could not handle the new session data: ');
-      }
-    });
-  }
-
-  return originalXhrOpen.call(this, method, url, async, user, password);
-};
-
-/**
- * The available control forms for the current challenge, sorted by TTS type.
+ * The available control forms for the current challenge, arranged by TTS type.
  *
  * @type {object.<string, ControlForm>}
  */
 let currentControlForms = {};
 
 /**
- * The last seen challenge form.
+ * The wrapper for the switch button usable to cycle through the control forms of the current challenge, if any.
  *
  * @type {Element|null}
  */
-let lastChallengeForm = null;
+let currentSwitchButtonWrapper = null;
 
 /**
- * The last seen wrapper of all the original playback buttons of a challenge.
+ * The last seen wrapper for the original playback buttons of a challenge.
  *
  * @type {Element|null}
  */
 let lastPlaybackButtonsWrapper = null;
 
+/**
+ * A promise for if and when the hotkeys mutex will have been acquired, when a request is pending.
+ *
+ * @type {Promise|null}
+ */
+let hotkeysMutexPromise = null;
 
 /**
- * Finds the form elements of a given type in a given parent element (or document body),
- * and marks them using a set of unique class names.
+ * A callback usable to release the hotkeys mutex, once it has been acquired.
+ *
+ * @type {Function|null}
+ */
+let hotkeysMutexReleaseCallback = null;
+
+/**
+ * Finds the form elements of a given type in a given parent element (or in the document body),
+ * and marks them using a set of extension-specific class names.
  *
  * @param {string} elementType An element type.
  * @param {string} formStyle A form style.
- * @param {Element|null} parentElement The parent element in which to restrict the search, if any.
+ * @param {?Element} parentElement The parent element in which to restrict the search.
  * @returns {Element[]} The searched form elements.
  */
-function findAndMarkFormElements(elementType, formStyle, parentElement = document.body) {
+const findAndMarkFormElements = (elementType, formStyle, parentElement = document.body) => {
   const elements = Array.from(parentElement.querySelectorAll(ELEMENT_SELECTORS[elementType][formStyle]));
 
   elements.forEach(element => {
@@ -240,628 +97,370 @@ function findAndMarkFormElements(elementType, formStyle, parentElement = documen
   });
 
   return elements;
-}
+};
 
 /**
  * @returns {string[]} The available TTS types for the current challenge.
  */
-function getAvailableTtsTypes() {
-  return Object.keys(currentControlForms);
-}
+const getAvailableTtsTypes = () => Object.keys(currentControlForms);
 
 /**
- * @param {HTMLAudioElement} element An <audio> element.
- * @returns {Object} A set of data about the corresponding sound.
+ * @returns {ControlForm|undefined} The currently selected control form, if any.
  */
-const getAudioElementData = element => ({
-  blobUrl: element.src,
-  duration: element.duration || 0,
-  defaultStartPosition: 0,
-  nextStartPosition: 0,
-  position: element.currentTime || 0,
-});
+const getSelectedControlForm = () => Object.values(currentControlForms).find(it.isSelected);
 
 /**
- * @param {string} ttsType A TTS type.
- * @returns {HTMLAudioElement|null} The <audio> element currently used to play the given TTS sound, if any.
+ * @returns {ControlForm|undefined} The currently focused control form, if any.
  */
-const getCurrentControlFormAudioElement = ttsType => (
-  currentControlForms[ttsType]?.audio?.currentElement
-  && (currentControlForms[ttsType].audio.currentElement.src === currentControlForms[ttsType].audio.blobUrl)
-  && currentControlForms[ttsType].audio.currentElement
-  || null
-);
+const getFocusedControlForm = () => Object.values(currentControlForms).find(it.isSelected && it.isFocused);
 
 /**
- * @returns {ControlForm|undefined} The active control form, if any.
- */
-function getActiveControlForm() {
-  return Object.values(currentControlForms).find(it.isActive);
-}
-
-/**
- * @returns {ControlForm|undefined} The focused control form, if any.
- */
-function getFocusedControlForm() {
-  return Object.values(currentControlForms).find(it.isActive && it.isFocused);
-}
-
-/**
- * Refreshes the control form controlling the TTS sound of a given type.
+ * Refreshes the form controlling the TTS sound of a given type.
  *
  * @param {string} ttsType A TTS type.
+ * @returns {void}
  */
-function refreshControlForm(ttsType) {
+const refreshControlForm = ttsType => {
   if (!currentControlForms[ttsType] || !currentControlForms[ttsType].panelWrapper.isConnected) {
     return;
   }
 
   const {
     formStyle,
-    isActive,
+    isSelected,
     isFocused,
     panelWrapper,
-    toggleButton,
-    howl,
-    audio,
-    audioCallbacks,
+    soundData,
   } = currentControlForms[ttsType];
 
   render(
-    <ToggleButton
+    <ControlPanel
       formStyle={formStyle}
-      active={isActive}
-      onClick={() => toggleControlForm(ttsType)}
+      ttsSpeed={ttsType}
+      selected={isSelected}
+      focused={isSelected && isFocused}
+      howl={soundData.sound}
     />,
-    toggleButton.parentElement,
-    toggleButton
-  );
-
-  render(
-    howl
-      ? (
-        <HowlControlPanel
-          formStyle={formStyle}
-          ttsType={ttsType}
-          active={isActive && isFocused}
-          howl={howl}
-        />
-      ) : (
-        <AudioControlPanel
-          formStyle={formStyle}
-          ttsType={ttsType}
-          active={isActive && isFocused}
-          audio={audio}
-          {...audioCallbacks}
-        />
-      ),
     panelWrapper
   );
-}
+
+  if (isSelected && currentSwitchButtonWrapper) {
+    render(
+      <ControlButton
+        onClick={selectNextControlForm}
+        type={(ttsType === SOUND_SPEED_SLOW) ? TYPE_SPEED_SLOW : TYPE_SPEED_NORMAL}
+      />,
+      currentSwitchButtonWrapper
+    );
+  }
+};
 
 /**
- * Replaces the active control form with the one controlling the TTS sound of another given type,
- * or hides it if it is the same.
+ * Selects the control form controlling the TTS sound of a given type.
+ *
+ * If the previously selected form (if any) was focused, the newly selected form will be focused too.
  *
  * @param {string} ttsType A TTS type.
+ * @returns {void}
  */
-function toggleControlForm(ttsType) {
+const selectControlForm = ttsType => {
   if (!currentControlForms[ttsType] || !currentControlForms[ttsType].panelWrapper.isConnected) {
     return;
   }
 
-  let hasActiveControls = false;
-  const activeControlForm = getActiveControlForm();
+  const selectedControlForm = getSelectedControlForm();
+  const isFormFocused = !!selectedControlForm?.isFocused;
 
-  if (activeControlForm) {
-    activeControlForm.isActive = false;
-    activeControlForm.isFocused = false;
-    refreshControlForm(activeControlForm.ttsType);
-    toggleElement(activeControlForm.panelWrapper, false);
+  if (selectedControlForm) {
+    selectedControlForm.isSelected = false;
+    selectedControlForm.isFocused = false;
+    refreshControlForm(selectedControlForm.ttsType);
   }
 
-  if (activeControlForm?.ttsType !== ttsType) {
+  if (selectedControlForm?.ttsType !== ttsType) {
     const form = currentControlForms[ttsType];
-    form.isActive = true;
-    form.isFocused = true;
-    refreshControlForm(form.ttsType);
-    toggleElement(form.panelWrapper, true);
-    hasActiveControls = true;
-  }
-
-  if (null !== lastChallengeForm) {
-    // Mark the challenge form so that we can adapt it to not lose any usability.
-    lastChallengeForm.classList.toggle(HAS_ACTIVE_CONTROLS_CLASS_NAME, hasActiveControls);
+    form.isSelected = true;
+    form.isFocused = isFormFocused;
+    refreshControlForm(ttsType);
   }
 }
 
 /**
- * Enables the handling of keyboard shortcuts by the active control form.
+ * Selects the next available control form, or the first if none was already selected.
+ *
+ * @returns {void}
  */
-function focusActiveControlForm() {
-  const controlForm = getActiveControlForm();
+const selectNextControlForm = () => {
+  const controlForm = getSelectedControlForm() || Object.values(currentControlForms)[0];
 
-  if (controlForm && !controlForm.isFocused) {
-    controlForm.isFocused = true;
-    refreshControlForm(controlForm.ttsType);
+  if (controlForm) {
+    const ttsTypes = getAvailableTtsTypes();
+    const nextIndex = (ttsTypes.indexOf(controlForm.ttsType) + 1) % ttsTypes.length;
+    selectControlForm(ttsTypes[nextIndex]);
   }
 }
 
 /**
- * Disables the handling of keyboard shortcuts by the active control form.
+ * Attempts to acquire the hotkeys mutex in a short delay.
+ *
+ * The mutex will be released if it is requested with a high priority by another extension.
+ *
+ * @returns {Promise<void>} A promise for if and when the hotkeys mutex has been acquired.
  */
-function blurActiveControlForm() {
-  const controlForm = getActiveControlForm();
+const acquireHotkeysMutex = () => {
+  if (hotkeysMutexReleaseCallback) {
+    return Promise.resolve()
+  }
+
+  if (hotkeysMutexPromise) {
+    return hotkeysMutexPromise;
+  }
+
+  hotkeysMutexPromise = requestMutex(
+    MUTEX_HOTKEYS,
+    {
+      timeoutDelay: 20,
+      priority: PRIORITY_AVERAGE,
+      onSupersessionRequest: blurSelectedControlForm,
+    }
+  )
+    .then(callback => {
+      hotkeysMutexReleaseCallback = callback;
+    })
+    .finally(() => {
+      hotkeysMutexPromise = null;
+    });
+
+  return hotkeysMutexPromise;
+}
+
+/**
+ * Releases the hotkeys mutex, if it had been previously acquired.
+ *
+ * @returns {void}
+ */
+const releaseHotkeysMutex = () => {
+  if (hotkeysMutexReleaseCallback) {
+    hotkeysMutexReleaseCallback();
+    hotkeysMutexReleaseCallback = null;
+  }
+};
+
+/**
+ * Attempts to focus the currently selected control form by acquiring the hotkeys mutex.
+ *
+ * @returns {Promise<void>} A promise for if and when the control form has been focused.
+ */
+const focusSelectedControlForm = () => {
+  const controlForm = getSelectedControlForm();
+
+  if (!controlForm) {
+    return Promise.reject();
+  }
+
+  return acquireHotkeysMutex()
+    .then(() => {
+      controlForm.isFocused = true;
+      refreshControlForm(controlForm.ttsType);
+    })
+}
+
+/**
+ * Blurs the currently focused control form, and releases the hotkeys mutex.
+ *
+ * @returns {void}
+ */
+const blurSelectedControlForm = () => {
+  const controlForm = getSelectedControlForm();
 
   if (controlForm?.isFocused) {
     controlForm.isFocused = false;
     refreshControlForm(controlForm.ttsType);
   }
+
+  releaseHotkeysMutex();
 }
 
 /**
  * Cleans up all the current control forms by unmounting the underlying panels.
+ *
  * This allows to make sure that all the corresponding lifecycle events have been called.
  *
  * @param {boolean} force Whether to force the cleanup, even if the forms are still present in the DOM.
+ * @returns {void}
  */
-function cleanUpControlForms(force = false) {
+const cleanUpControlForms = (force = false) => {
   Object.entries(currentControlForms)
     .forEach(([ type, form ]) => {
       if (force || !form.panelWrapper.isConnected) {
         render('', form.panelWrapper);
         delete currentControlForms[type];
+        form.isFocused && releaseHotkeysMutex();
       }
     });
-}
+};
 
 // Regularly clean up the obsolete control forms.
-setInterval(() => cleanUpControlForms(), 50);
+setInterval(() => cleanUpControlForms(), 100);
 
 /**
- * Prepares the control forms for the new current challenge, if it has changed since the previous call.
+ * Prepares the control forms for a given set of TTS sounds.
  *
- * @param {number} challengeIndex The index of the new current challenge.
+ * @param {object<string, object>} sounds The new TTS sounds that should be controlled.
+ * @returns {void}
  */
-function prepareControlForms(challengeIndex) {
-  let playbackButtonsWrapper;
+const prepareControlForms = sounds => {
+  let playbackButtonsWrapper = null;
 
   const formStyle = FORM_STYLES.find(style => {
     [ playbackButtonsWrapper ] = findAndMarkFormElements(PLAYBACK_BUTTONS_WRAPPER, style);
     return !!playbackButtonsWrapper;
   });
 
-  if (playbackButtonsWrapper !== lastPlaybackButtonsWrapper) {
-    // Always force unmounting the previous control panels when a change occurred,
-    // to ensure that all the necessary cleanup has been done (such as stopping and resetting the TTS sounds).
-    cleanUpControlForms(true);
+  if (playbackButtonsWrapper === lastPlaybackButtonsWrapper) {
+    return;
+  }
 
-    lastPlaybackButtonsWrapper = playbackButtonsWrapper;
+  // Always force unmounting the previous control panels when a change occurred,
+  // to ensure that all the necessary cleanup has been done (such as stopping and resetting the TTS sounds).
+  cleanUpControlForms(true);
 
-    if (!playbackButtonsWrapper) {
+  lastPlaybackButtonsWrapper = playbackButtonsWrapper;
+
+  if (!playbackButtonsWrapper) {
+    return;
+  }
+
+  // Find and mark all the required original UI elements.
+
+  const playbackButtonWrappers = findAndMarkFormElements(
+    PLAYBACK_BUTTON_WRAPPER,
+    formStyle,
+    playbackButtonsWrapper
+  );
+
+  const playbackButtons = playbackButtonWrappers.flatMap(
+    findAndMarkFormElements(PLAYBACK_BUTTON, formStyle, _)
+  );
+
+  if (0 === playbackButtons.length) {
+    return;
+  }
+
+  // Create a button allowing to cycle through the control forms when only one is displayed at a time.
+  if (playbackButtons.length > 1) {
+    currentSwitchButtonWrapper = document.createElement('div');
+    currentSwitchButtonWrapper.classList.add(`${EXTENSION_PREFIX}switch-button`);
+    playbackButtonsWrapper.append(currentSwitchButtonWrapper);
+  } else {
+    currentSwitchButtonWrapper = null;
+  }
+
+  // Create a control form for each TTS playback button.
+  // Apply the current rate and volume settings to each sound.
+  playbackButtons.forEach((playbackButton, index) => {
+    const ttsSpeed = playbackButton.matches(ELEMENT_SELECTORS[SLOW_PLAYBACK_BUTTON][formStyle])
+      ? SOUND_SPEED_SLOW
+      : SOUND_SPEED_NORMAL;
+
+    const soundData = sounds[ttsSpeed];
+
+    if (!soundData) {
       return;
     }
 
-    // Find and mark all the required original UI elements.
-    [ lastChallengeForm ] = findAndMarkFormElements(CHALLENGE_FORM, formStyle);
-
-    // Check for translation hints to prevent false positives, because listening and translation challenges
-    // can share TTS sounds, and their DOM structures look alike (especially in the case of "cartoon" forms).
-    if (!lastChallengeForm || lastChallengeForm.querySelector(TRANSLATION_CHALLENGE_HINT_SELECTOR)) {
-      return;
-    }
-
-    const [ playbackForm ] = findAndMarkFormElements(PLAYBACK_FORM, formStyle, lastChallengeForm);
-
-    const playbackButtonWrappers = findAndMarkFormElements(
-      PLAYBACK_BUTTON_WRAPPER,
-      formStyle,
-      playbackButtonsWrapper
+    applyCurrentTtsSettingsToHowlSound(
+      soundData.speed,
+      soundData.sound
     );
 
-    const playbackButtons = playbackButtonWrappers.flatMap(findAndMarkFormElements(PLAYBACK_BUTTON, formStyle, _));
+    const panelWrapper = document.createElement('div');
+    panelWrapper.classList.add(...CONTROL_FORM_BASE_CLASS_NAMES);
+    playbackButtonsWrapper.insertBefore(panelWrapper, currentSwitchButtonWrapper);
 
-    if (!playbackForm || (0 === playbackButtons.length)) {
-      return;
-    }
-
-    // Create a control form and a toggle button for each available TTS playback button.
-    playbackButtons.forEach(playbackButton => {
-      const ttsType = playbackButton.matches(ELEMENT_SELECTORS[SLOW_PLAYBACK_BUTTON][formStyle])
-        ? TTS_TYPE_SLOW
-        : TTS_TYPE_NORMAL;
-
-      const panelWrapper = document.createElement('div');
-      panelWrapper.classList.add(...CONTROL_FORM_BASE_CLASS_NAMES);
-      panelWrapper.style.display = 'none';
-      playbackForm.append(panelWrapper);
-
-      const container = playbackButton.parentElement;
-
-      // Prepend an invisible button to the wrapper, which is currently a <label>, to make it the controlled element
-      // instead of the playback button.
-      // This prevents the :hover and :active effects of the playback button from being triggered when not relevant.
-      const labelStateCatcher = document.createElement('button');
-      labelStateCatcher.style.display = 'none';
-      labelStateCatcher.addEventListener('click', () => playbackButton.click());
-      container.prepend(labelStateCatcher);
-
-      // Append a placeholder which will be replaced by the toggle button.
-      const placeholder = document.createElement('div');
-      container.appendChild(placeholder);
-
-      render(
-        <ToggleButton
-          formStyle={formStyle}
-          active={false}
-          onClick={() => toggleControlForm(ttsType)}
-        />,
-        container,
-        placeholder
-      );
-
-      placeholder.isConnected && container.removeChild(placeholder);
-
-      let audioCallbacks = null;
-
-      if (!isHowlerUsed) {
-        const withAudio = callback => (
-          currentControlForms[ttsType]?.audio
-          && (panelWrapper === currentControlForms[ttsType].panelWrapper)
-          && callback(currentControlForms[ttsType].audio, getCurrentControlFormAudioElement(ttsType))
-        );
-
-        const onSettingsChange = () => withAudio((_, element) => (
-          element && applyCurrentTtsSettingsToAudioElement(ttsType, element)
-        ));
-
-        const onPlayRequest = () => {
-          playbackButton.click();
-          getOriginalFocusedInput()?.blur();
-        };
-
-        const onPauseRequest = () => withAudio((audio, element) => {
-          audio.playbackState = PLAYBACK_STATE_PAUSED;
-
-          if (element) {
-            audio.nextStartPosition = element.currentTime;
-            element.pause();
-          }
-
-          refreshControlForm(ttsType);
-        });
-
-        const onStopRequest = () => withAudio((audio, element) => {
-          audio.playbackState = PLAYBACK_STATE_STOPPED;
-          audio.nextStartPosition = audio.defaultStartPosition;
-          audio.position = audio.defaultStartPosition;
-          element?.pause();
-          refreshControlForm(ttsType);
-        });
-
-        const onSeekRequest = position => withAudio((audio, element) => {
-          audio.position = position;
-
-          if (PLAYBACK_STATE_PLAYING !== audio.playbackState) {
-            audio.nextStartPosition = position;
-          } else if (element) {
-            element.currentTime = position;
-          }
-
-          refreshControlForm(ttsType);
-        });
-
-        const onPinnedStart = position => withAudio(audio => {
-          audio.defaultStartPosition = position;
-          audio.nextStartPosition = position;
-        });
-
-        audioCallbacks = {
-          onSettingsChange,
-          onPlayRequest,
-          onPauseRequest,
-          onStopRequest,
-          onSeekRequest,
-          onPinnedStart,
-        };
-      }
-
-      currentControlForms[ttsType] = {
-        formStyle,
-        ttsType,
-        isActive: false,
-        isFocused: false,
-        panelWrapper,
-        playbackButton,
-        toggleButton: container.lastElementChild,
-        howl: null,
-        audio: null,
-        audioCallbacks,
-      };
-    });
-
-    // Register the new current "Howl" objects once they are loaded, and apply the current playback settings on them.
-    const challengeHowls = challengeTtsSounds
-      .filter(it.challengeIndex === challengeIndex)
-      .map(sound => [ sound.ttsType, initializedHowls[sound.soundUrl] ])
-      .filter(isObject(_[1]))
-
-    challengeHowls.forEach(([ ttsType, howl ]) => {
-      const onHowlLoaded = () => {
-        if (
-          currentControlForms[ttsType]
-          && (playbackButtonsWrapper === lastPlaybackButtonsWrapper)
-        ) {
-          applyCurrentTtsSettingsToHowlSound(ttsType, howl);
-          currentControlForms[ttsType].howl = howl;
-          refreshControlForm(ttsType);
-        }
-      };
-
-      if (howl.state() === 'loaded') {
-        onHowlLoaded();
-      } else {
-        howl.once('load', onHowlLoaded);
-      }
-    });
-  }
-}
-
-/**
- * Whether the "howler.js" library is used to play the TTS sounds.
- *
- * @type {boolean}
- */
-let isHowlerUsed = false;
-
-/**
- * The active "Howl" objects that were initialized by Duolingo, sorted by source.
- *
- * @type {object.<string, object>}
- */
-let initializedHowls = {};
-
-/**
- * The last seen prototype for the "Howl" type from the "howler.js" library.
- *
- * @type {object|null}
- */
-let lastHowlPrototype = null;
-
-// Poll for the "Howl" prototype and override it once it is available.
-setInterval(() => {
-  /* eslint-disable no-undef */
-
-  if (window.Howl && (lastHowlPrototype !== Howl.prototype)) {
-    lastHowlPrototype = Howl.prototype;
-
-    const originalHowlInit = Howl.prototype.init;
-    const originalHowlPlay = Howl.prototype.play;
-
-    Howl.prototype.init = function (options) {
-      try {
-        // Remember each "Howl" object by their source.
-        // This will be useful later to find all the active "Howl" objects for the current challenge.
-        [ options.src ].flat().forEach((initializedHowls[it] = this));
-      } catch (error) {
-        logError(error, 'Could not handle the initialized "Howl" sound: ');
-      }
-
-      return originalHowlInit.call(this, options);
-    }
-
-    Howl.prototype.play = function (id) {
-      try {
-        if (!id) {
-          const src = String(this._src || this._parent && this._parent._src || '').trim();
-
-          const playbackCallback = () => {
-            const challengeSound = challengeTtsSounds.find(src === it.soundUrl);
-
-            if (isObject(challengeSound)) {
-              isHowlerUsed = true;
-              prepareControlForms(challengeSound.challengeIndex);
-            }
-          };
-
-          !isPracticeSessionLoading
-            ? playbackCallback()
-            : pendingSoundPlaybackCallbacks.push(playbackCallback);
-        }
-      } catch (error) {
-        logError(error, 'Could not handle the played "Howl" sound: ');
-      }
-
-      return originalHowlPlay.call(this, id);
+    currentControlForms[ttsSpeed] = {
+      formStyle,
+      ttsType: ttsSpeed,
+      isSelected: (0 === index),
+      isFocused: false,
+      panelWrapper,
+      playbackButton,
+      soundData,
     };
-  }
-}, 50);
 
-// Regularly clean up the obsolete "Howl" objects.
-setInterval(() => {
-  initializedHowls = Object.fromEntries(
-    Object.entries(initializedHowls).filter(it[1].state() !== 'unloaded')
-  );
-}, 60 * 1000);
-
-/**
- * @type {Function}
- */
-const originalFetch = window.fetch;
-
-/**
- * @type {Function}
- */
-const originalCreateObjectUrl = URL.createObjectURL;
-
-/**
- * A map from blobs holding TTS sounds to the corresponding URLs.
- *
- * @type {WeakMap.<Blob, string>}
- */
-let ttsBlobToBlobUrl = new WeakMap();
-
-/**
- * A map from URLs of blobs holding TTS sounds to the original URLs of the sounds.
- *
- * @type {Object.<string, string>}
- */
-let ttsBlobUrlToSoundUrl = {};
-
-// Enforce stable URLs for TTS sound blobs, to be able to later identify them.
-
-// Returns a stable URL for blobs holding TTS sounds.
-URL.createObjectURL = function (object) {
-  return isBlob(object) && ttsBlobToBlobUrl.has(object)
-    ? ttsBlobToBlobUrl.get(object)
-    : originalCreateObjectUrl.call(this, object);
-}
-
-// Make responses for TTS sounds return a stable Blob.
-window.fetch = function (resource, init) {
-  return originalFetch.call(this, resource, init)
-    .then(response => {
-      const originalResponse = response.clone();
-
-      return response.blob()
-        .then(blob => {
-          if (
-            (blob.type.indexOf('audio') === 0)
-            && challengeTtsSounds.some(response.url === it.soundUrl)
-          ) {
-            const blobUrl = URL.createObjectURL(blob);
-            ttsBlobToBlobUrl.set(blob, blobUrl);
-            ttsBlobUrlToSoundUrl[blobUrl] = response.url;
-
-            // By default, blob() returns a new Blob each time.
-            const patchResponse = response => {
-              response.blob = async () => blob;
-
-              response.clone = function () {
-                return patchResponse(Response.prototype.clone.call(this));
-              };
-
-              return response;
-            };
-
-            patchResponse(originalResponse);
-          }
-
-          return originalResponse;
-        })
-        .catch(() => originalResponse)
-    })
-}
-
-/**
- * @type {Function}
- */
-const originalAudioPlay = Audio.prototype.play;
-
-Audio.prototype.play = function () {
-  if (isHowlerUsed) {
-    return originalAudioPlay.call(this);
-  }
-
-  const playbackCallback = () => {
-    try {
-      const challengeSound = challengeTtsSounds.find(
-        (this.src === it.soundUrl)
-        || (ttsBlobUrlToSoundUrl[this.src] === it.soundUrl)
-      );
-
-      if (isObject(challengeSound)) {
-        const ttsType = challengeSound.ttsType;
-
-        prepareControlForms(challengeSound.challengeIndex);
-
-        if (currentControlForms[ttsType]) {
-          applyCurrentTtsSettingsToAudioElement(ttsType, this);
-
-          const controlForm = currentControlForms[ttsType];
-
-          if (!controlForm.audio) {
-            controlForm.audio = getAudioElementData(this);
-
-            // Preload the slow TTS audio data, so that the control form is fully usable from the start.
-            if ((TTS_TYPE_NORMAL === ttsType) && currentControlForms[TTS_TYPE_SLOW]) {
-              const slowControlForm = currentControlForms[TTS_TYPE_SLOW];
-
-              const slowTtsSound = challengeTtsSounds.find(
-                (TTS_TYPE_SLOW === it.ttsType)
-                && (challengeSound.challengeIndex === it.challengeIndex)
-              );
-
-              const slowSoundUrl = slowTtsSound
-                && Object.entries(ttsBlobUrlToSoundUrl)
-                  .filter(slowTtsSound.soundUrl === it[1])
-                  .map(it[0])[0]
-                || slowTtsSound.soundUrl;
-
-              if (slowSoundUrl) {
-                setTimeout(() => {
-                  const slowAudio = new Audio(slowSoundUrl);
-
-                  slowAudio.addEventListener('loadedmetadata', () => {
-                    slowControlForm.audio = slowControlForm.audio || getAudioElementData(slowAudio);
-                  });
-
-                  slowAudio.load();
-                });
-              }
-            }
-          }
-
-          if (controlForm.audio.nextStartPosition > 0) {
-            this.currentTime = controlForm.audio.nextStartPosition;
-            controlForm.audio.nextStartPosition = controlForm.audio.defaultStartPosition;
-          }
-
-          controlForm.audio.blobUrl = this.src;
-          controlForm.audio.playbackState = PLAYBACK_STATE_PLAYING;
-          controlForm.audio.currentElement = this;
-
-          refreshControlForm(challengeSound.ttsType);
-        }
-      }
-    } catch (error) {
-      logError(error, 'Could not handle the played audio: ');
-    }
-  };
-
-  !isPracticeSessionLoading
-    ? playbackCallback()
-    : pendingSoundPlaybackCallbacks.push(playbackCallback);
-
-  return originalAudioPlay.call(this);
+    refreshControlForm(ttsSpeed);
+  });
 };
 
-// Regularly check whether a sound is being played or has just ended, and refresh the corresponding control form.
-setInterval(() => TTS_TYPES.forEach(ttsType => {
-  const audio = currentControlForms[ttsType]?.audio;
-
-  if (audio && (PLAYBACK_STATE_PLAYING === audio.playbackState)) {
-    const audioElement = getCurrentControlFormAudioElement(ttsType);
-
-    if (audioElement) {
-      audio.duration = audio.duration || audioElement.duration || 0;
-    }
-
-    if (audioElement && !audioElement.ended && !audioElement.paused) {
-      audio.position = audioElement.currentTime;
-    } else {
-      audio.playbackState = PLAYBACK_STATE_STOPPED;
-      audio.position = audio.nextStartPosition;
-    }
-
-    refreshControlForm(ttsType);
-  }
-}), 75);
-
-// Allow control forms to handle keyboard shortcuts only when no input from the original UI is focused.
+/**
+ * @type {Set<string>}
+ */
+const challengeTtsUrls = new Set();
 
 /**
- * Whether we are currently resetting the tabbing position, triggering meaningless "focusin" and "focusout" events.
+ * @type {object.<string, string[]>}
+ */
+const relatedTtsUrls = {};
+
+/**
+ * @type {object.<string, object>}
+ */
+const initializedTtsData = {};
+
+// Extract the URLs of the TTS sounds when challenges are loaded.
+onPracticeChallengesLoaded(({ challenges }) => (
+  challenges.forEach(challenge => {
+    const normalTtsUrl = isString(challenge.tts) && challenge.tts.trim();
+    const slowTtsUrl = isString(challenge.slowTts) && challenge.slowTts.trim();
+
+    if (normalTtsUrl) {
+      challengeTtsUrls.add(normalTtsUrl);
+    }
+
+    if (slowTtsUrl) {
+      challengeTtsUrls.add(slowTtsUrl);
+
+      if (normalTtsUrl) {
+        relatedTtsUrls[slowTtsUrl] = [ normalTtsUrl ];
+        relatedTtsUrls[normalTtsUrl] = [ slowTtsUrl ];
+      }
+    }
+  })
+));
+
+// Detect the initialization of TTS sounds and remember their data.
+onSoundInitialized(sound => {
+  if (challengeTtsUrls.has(sound.url)) {
+    initializedTtsData[sound.url] = sound;
+  }
+});
+
+// Detect when TTS sounds are played, and prepare the corresponding control forms if needed.
+onSoundPlaybackRequested(sound => {
+  if (
+    (SOUND_PLAYBACK_STRATEGY_HOWLER === sound.playbackStrategy)
+    && challengeTtsUrls.has(sound.url)
+  ) {
+    initializedTtsData[sound.url] = sound;
+
+    const challengeSounds = Object.fromEntries(
+      ([
+        sound.url,
+        ...(relatedTtsUrls[sound.url] || [])
+      ]).map(initializedTtsData[it])
+        .filter(isObject)
+        .map([ it.speed, it ])
+    );
+
+    setTimeout(() => prepareControlForms(challengeSounds));
+  }
+
+  return true;
+});
+
+/**
+ * Whether we are currently resetting the tabbing position,
+ * triggering meaningless "focusin" / "focusout" events in the process.
  *
  * @type {boolean}
  */
@@ -870,70 +469,42 @@ let isResettingTabbingPosition = false;
 /**
  * @returns {Element|undefined} The currently focused input, if any, and if it belongs to the original UI.
  */
-function getOriginalFocusedInput() {
+const getOriginalFocusedInput = () => {
   const input = getFocusedInput();
 
-  return input && !Object.values(currentControlForms).some(it.isActive && it.panelWrapper.contains(input))
+  return input && !Object.values(currentControlForms).some(it.isSelected && it.panelWrapper.contains(input))
     ? input
     : undefined;
-}
+};
 
 document.addEventListener(
   'focusin',
-  () => !isResettingTabbingPosition && getOriginalFocusedInput() && blurActiveControlForm()
-);
-
-document.addEventListener(
-  'focusout',
-  () => !isResettingTabbingPosition && !getOriginalFocusedInput() && focusActiveControlForm()
+  () => !isResettingTabbingPosition && getOriginalFocusedInput() && blurSelectedControlForm()
 );
 
 /**
- * The global keyboard shortcuts, sorted by key.
+ * The global keyboard shortcuts, arranged by key.
  *
  * @type {object}
  */
 const keyboardShortcuts = {
-  // Switches focus back and forth between the active control form and the answer input.
-  // Opens the first available control form when none is opened yet.
+  // Switches focus back and forth between the selected control form and the answer input.
   control: () => {
-    const controlForm = getActiveControlForm();
-    const focusedInput = getOriginalFocusedInput();
+    const controlForm = getSelectedControlForm();
 
     if (controlForm) {
-      if (focusedInput) {
-        focusedInput.blur();
-        focusActiveControlForm();
+      if (!controlForm.isFocused) {
+        focusSelectedControlForm()
+          .then(() => getOriginalFocusedInput()?.blur())
+          .catch(noop);
       } else {
-        const answerInput = document.querySelector(ANSWER_INPUT_SELECTOR);
-
-        if (answerInput && !answerInput.disabled) {
-          blurActiveControlForm();
-          answerInput.focus();
-        }
-      }
-    } else {
-      const ttsTypes = getAvailableTtsTypes();
-
-      if (ttsTypes.length > 0) {
-        focusedInput && focusedInput.blur();
-        toggleControlForm(ttsTypes[0]);
+        blurSelectedControlForm();
+        document.querySelector(ANSWER_INPUT_SELECTOR)?.focus();
       }
     }
   },
 
-  // Closes the active control form, if any, then focuses the answer input.
-  escape: () => {
-    const controlForm = getActiveControlForm();
-
-    if (controlForm) {
-      const answerInput = document.querySelector(ANSWER_INPUT_SELECTOR);
-      toggleControlForm(controlForm.ttsType);
-      answerInput && answerInput.focus();
-    }
-  },
-
-  // Cycles between the available control forms, when there is more than one and any is active.
+  // Cycles between the available control forms, when there is more than one and any is already selected.
   tab: () => {
     const ttsTypes = getAvailableTtsTypes();
 
@@ -941,13 +512,11 @@ const keyboardShortcuts = {
       const controlForm = getFocusedControlForm();
 
       if (controlForm) {
-        const nextIndex = (ttsTypes.indexOf(controlForm.ttsType) + 1) % ttsTypes.length;
-        toggleControlForm(ttsTypes[nextIndex]);
+        selectNextControlForm();
 
         // Reset the current tabbing position to prevent eventually reaching the address bar.
         isResettingTabbingPosition = true;
-        controlForm.toggleButton.focus();
-        controlForm.toggleButton.blur();
+        controlForm.playbackButton.focus();
         isResettingTabbingPosition = false;
       }
     }
@@ -1004,20 +573,6 @@ window.addEventListener('blur', () => {
 });
 
 /**
- * A challenge form, including playback elements and answer inputs.
- *
- * @type {string}
- */
-const CHALLENGE_FORM = 'challenge-form';
-
-/**
- * A wrapper for a set of playback-related elements.
- *
- * @type {string}
- */
-const PLAYBACK_FORM = 'playback-form';
-
-/**
  * A wrapper for a set of playback buttons.
  *
  * @type {string}
@@ -1046,30 +601,12 @@ const PLAYBACK_BUTTON = 'playback-button';
 const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
 
 /**
- * The class name that can be added to an element to indicate that playback controls are active.
- *
- * @type {string}
- */
-const HAS_ACTIVE_CONTROLS_CLASS_NAME = `${EXTENSION_PREFIX}with-active-controls`;
-
-/**
  * The CSS selectors for the different UI elements we need to find, mark, and possibly adapt.
  * Sorted by element type and form style.
  *
  * @type {object}
  */
 const ELEMENT_SELECTORS = {
-  // The child of the actual challenge form is currently preferred here,
-  // because it applies dimensions that we need to override.
-  [CHALLENGE_FORM]: {
-    [FORM_STYLE_BASIC]: LISTENING_CHALLENGE_TYPES.map(`[data-test*="challenge-${it}"] > *:first-child`),
-    [FORM_STYLE_CARTOON]: LISTENING_CHALLENGE_TYPES.map(`[data-test*="challenge-${it}"] > *:first-child`),
-  },
-  // The control forms will be appended to those elements.
-  [PLAYBACK_FORM]: {
-    [FORM_STYLE_BASIC]: '._1cnOk',
-    [FORM_STYLE_CARTOON]: '._3mO3g',
-  },
   // Two forms can be present on the page at a given time, the inactive one being hidden under the other using
   // a negative z-index on a wrapper (inside a "[ancestor_class]:nth-child(2)" rule).
   // Use [ancestor_class]:first-child here to make sure we target the right form.
@@ -1106,13 +643,6 @@ const CONTROL_FORM_BASE_CLASS_NAMES = [
   // (it is preferable to have the same border color as the answer <textarea>).
   '_1wJYQ',
 ];
-
-/**
- * A CSS selector for the hints displayed under words in the translation challenges.
- *
- * @type {string}
- */
-const TRANSLATION_CHALLENGE_HINT_SELECTOR = '[data-test="hint-sentence"]';
 
 /**
  * A CSS selector for the free answer input of a challenge.

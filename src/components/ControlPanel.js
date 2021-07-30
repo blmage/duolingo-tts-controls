@@ -1,18 +1,13 @@
 import { h } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { useInterval, useKeyCi, useStateRef, useThrottledCallback, useUnmount } from 'preact-use';
-import { _ } from 'param.macro';
+import { useInterval, useMedia, useStateRef, useThrottledCallback, useTimeoutFn, useUnmount } from 'preact-use';
+import { useHotkeys as useBaseHotkeys } from 'react-hotkeys-hook';
+import { _, lift } from 'one-liner.macro';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { discardEvent, isObject } from '../functions';
-
-import {
-  DIGIT_CHARS,
-  EXTENSION_PREFIX,
-  FORM_STYLE_BASIC,
-  POSITION_STEP,
-  RATE_STEP,
-  VOLUME_STEP,
-} from '../constants';
+import { isFunction, isObject, noop } from 'duo-toolbox/utils/functions';
+import { discardEvent } from 'duo-toolbox/utils/ui';
+import { SOUND_SPEED_NORMAL } from 'duo-toolbox/duo/sounds';
+import { DIGIT_CHARS, EXTENSION_PREFIX, FORM_STYLE_BASIC } from '../constants';
 
 import {
   applyTtsSettingsToHowlSound,
@@ -22,24 +17,27 @@ import {
   getTtsMinRate,
   getTtsMinVolume,
   isUnstableHowl,
-  TTS_TYPE_NORMAL,
+  POSITION_STEP,
+  RATE_STEP,
   useTtsRate,
   useTtsVolume,
+  VOLUME_STEP,
 } from '../tts';
 
 import { BASE, useStyles } from './index';
 import ControlButton, * as buttons from './ControlButton';
 import ControlSlider, * as sliders from './ControlSlider';
 
-const HowlControlPanel =
+const ControlPanel =
   ({
      formStyle = FORM_STYLE_BASIC,
-     ttsType = TTS_TYPE_NORMAL,
-     active = false,
+     ttsSpeed = SOUND_SPEED_NORMAL,
+     selected = false,
+     focused = false,
      howl = null,
    }) => {
-    const [ rate, rateRef, setRate ] = useTtsRate(ttsType);
-    const [ volume, volumeRef, setVolume ] = useTtsVolume(ttsType);
+    const [ rate, rateRef, setRate ] = useTtsRate(ttsSpeed);
+    const [ volume, volumeRef, setVolume ] = useTtsVolume(ttsSpeed);
     const [ duration, setDuration ] = useState(0.0);
     const [ position, positionRef, setPosition ] = useStateRef(0.0);
     const [ isPlaying, isPlayingRef, setIsPlaying ] = useStateRef(false);
@@ -51,6 +49,17 @@ const HowlControlPanel =
       () => !isPlayingRef.current || isPausedRef.current,
       [ isPlayingRef, isPausedRef ]
     );
+
+    const [ isHovered, setIsHovered ] = useState(false);
+    const [ isToggled, setIsToggled ] = useState(false);
+    const [ isExpanded, setIsExpanded ] = useState(false);
+
+    const [ , cancelPanelCollapse, collapsePanel ] = useTimeoutFn(() => setIsExpanded(false), 750);
+
+    const expandPanel = useCallback(() => {
+      setIsExpanded(true);
+      cancelPanelCollapse();
+    }, [ setIsExpanded, cancelPanelCollapse ]);
 
     // ------ Rate / volume settings ------
 
@@ -158,7 +167,11 @@ const HowlControlPanel =
         // This was the last long-running seek action: restore the initial sound state.
         if (howl) {
           (null !== position) && howl.seek(position);
-          wasPlayingBeforeSeeking.current && howl.play();
+
+          if (wasPlayingBeforeSeeking.current) {
+            hasStartedPlayback.current = true;
+            howl.play();
+          }
         }
 
         wasPlayingBeforeSeeking.current = false;
@@ -168,7 +181,14 @@ const HowlControlPanel =
     // ------ Sound actions ------
 
     // Plays the sound, if appropriate in the current context.
-    const play = useCallback(() => howl && !isSeeking() && howl.play(), [ howl, isSeeking ]);
+    const hasStartedPlayback = useRef(false);
+
+    const play = useCallback(() => {
+      if (howl && !isSeeking()) {
+        hasStartedPlayback.current = true;
+        howl.play();
+      }
+    }, [ howl, isSeeking ]);
 
     // Pauses the sound.
     const pause = useCallback(() => {
@@ -201,69 +221,75 @@ const HowlControlPanel =
 
     // ------ Keyboard shortcuts ------
 
-    const useKeys = (keys, callback, deps, eventName = 'keydown') => {
-      useKeyCi(keys, (key, event) => {
-        if (active) {
-          discardEvent(event)
-          callback(key, event);
-        }
-      }, { event: eventName }, [ active ].concat(deps));
-    };
+    const useHotkeys = ({ keys, onKeyDown = null, onKeyUp = null, deps = [] }) => useBaseHotkeys(
+      keys,
+      (keyboardEvent, hotkeysEvent) => {
+        discardEvent(keyboardEvent);
+        keyboardEvent.stopImmediatePropagation();
 
-    useKeys(
-      [ '<', '>', 'arrowleft', 'arrowright' ],
-      (key, event) => {
-        if (
-          !event.ctrlKey && ('<' === key)
-          || event.ctrlKey && ('arrowleft' === key)
-        ) {
-          (rateRef.current > getTtsMinRate(ttsType)) && onRateChange(rateRef.current - RATE_STEP);
-        } else if (
-          !event.ctrlKey && ('>' === key)
-          || event.ctrlKey && ('arrowright' === key)
-        ) {
-          (rateRef.current < getTtsMaxRate(ttsType)) && onRateChange(rateRef.current + RATE_STEP);
-        }
-      },
-      [ ttsType, rateRef, onRateChange ]
-    )
-
-    useKeys(
-      [ 'arrowdown', 'arrowup' ],
-      (key, event) => {
-        if (event.ctrlKey) {
-          return;
-        }
-
-        if ('arrowdown' === key) {
-          (volumeRef.current > getTtsMinVolume()) && onVolumeChange(volumeRef.current - VOLUME_STEP)
+        if (keyboardEvent.type === 'keyup') {
+          onKeyUp(hotkeysEvent.shortcut, keyboardEvent);
         } else {
-          (volumeRef.current < getTtsMaxVolume()) && onVolumeChange(volumeRef.current + VOLUME_STEP);
+          onKeyDown(hotkeysEvent.shortcut, keyboardEvent);
         }
       },
-      [ volumeRef, onVolumeChange ]
+      {
+        enabled: focused,
+        enableOnTags: [ 'INPUT' ],
+        keyup: isFunction(onKeyUp),
+        keydown: isFunction(onKeyDown),
+      },
+      deps
     );
 
-    useKeys(
-      [ '0', 'home', 'end' ],
-      key => onSeek('end' === key ? duration : 0),
-      [ duration, onSeek ]
-    );
+    const useExpandingHotkeys = ({ keys, onKeyDown = noop, onKeyUp = noop, deps = [] }) => useHotkeys({
+      keys,
+      onKeyDown: (shortcut, event) => {
+        expandPanel();
+        onKeyDown(shortcut, event);
+      },
+      onKeyUp: (shortcut, event) => {
+        collapsePanel();
+        onKeyUp(shortcut, event);
+      },
+      deps: deps.concat(expandPanel, collapsePanel),
+    });
 
-    useKeys(
-      DIGIT_CHARS.slice(1),
-      key => onSeek(getValidPosition(duration * Number(key) / 10)),
-      [ duration, getValidPosition, onSeek ]
-    );
+    useExpandingHotkeys({
+      keys: '<, ctrl+left, >, ctrl+right',
+      onKeyDown: shortcut => [ '<', 'ctrl+left' ].includes(shortcut)
+        ? (rateRef.current > getTtsMinRate(ttsSpeed)) && onRateChange(rateRef.current - RATE_STEP)
+        : (rateRef.current < getTtsMaxRate(ttsSpeed)) && onRateChange(rateRef.current + RATE_STEP),
+      deps: [ ttsSpeed, rateRef, onRateChange ],
+    });
 
-    useKeys(
-      [ 'arrowleft', 'arrowright' ],
-      (key, event) => {
-        if (event.ctrlKey) {
-          return;
-        }
+    useExpandingHotkeys({
+      keys: 'down, up',
+      onKeyDown: key => ('down' === key)
+        ? (volumeRef.current > getTtsMinVolume()) && onVolumeChange(volumeRef.current - VOLUME_STEP)
+        : (volumeRef.current < getTtsMaxVolume()) && onVolumeChange(volumeRef.current + VOLUME_STEP),
+      deps: [ volumeRef, onVolumeChange ],
+    });
 
-        const position = 'arrowleft' === key
+    useExpandingHotkeys({
+      keys: '0, home, end',
+      onKeyDown: key => onSeek('end' === key ? duration : 0),
+      deps: [ duration, onSeek ],
+    });
+
+    useExpandingHotkeys({
+      keys: DIGIT_CHARS.map(lift(`num_${_}`)).join(','),
+      onKeyDown: key => {
+        const digit = key.match(/num_(\d+)/)?.[1] || 0;
+        onSeek(getValidPosition(duration * Number(digit) / 10));
+      },
+      deps: [ duration, getValidPosition, onSeek ],
+    });
+
+    useExpandingHotkeys({
+      keys: 'left, right',
+      onKeyDown: (key, event) => {
+        const position = 'left' === key
           ? Math.max(0.0, positionRef.current - POSITION_STEP)
           : Math.min(duration, positionRef.current + POSITION_STEP);
 
@@ -273,45 +299,27 @@ const HowlControlPanel =
           onSeek(position);
         }
       },
-      [ duration, positionRef, onSeek, onLongSeekStart ],
-      'keydown'
-    );
-
-    useKeys(
-      [ 'arrowleft', 'arrowright' ],
-      (key, event) => (
-        !event.ctrlKey
-        && (null !== positionRef.current)
-        && onLongSeekEnd(key, positionRef.current)
-      ),
-      [ positionRef, onLongSeekEnd ],
-      'keyup'
-    );
-
-    useKeys(
-      [ ' ', 'arrowup', 'k' ],
-      (key, event) => {
-        if (
-          (!event.ctrlKey && ('arrowup' !== key))
-          || (event.ctrlKey && ('arrowup' === key))
-        ) {
-          !isPlaying || isPaused
-            ? play()
-            : pause()
-        }
+      onKeyUp: key => {
+        (null !== positionRef.current) && onLongSeekEnd(key, positionRef.current);
       },
-      [ isPlaying, isPaused, play, pause ]
-    );
+      deps: [ duration, positionRef, onSeek, onLongSeekStart, onLongSeekEnd ],
+    });
 
-    useKeys(
-      [ 'arrowdown', 'p' ],
-      (key, event) => (event.ctrlKey || ('arrowdown' !== key)) && pinStart(),
-      [ pinStart ]
-    );
+    useHotkeys({
+      keys: 'k, space, ctrl+up',
+      onKeyDown: () => (!isPlaying || isPaused) ? play() : pause(),
+      deps: [ isPlaying, isPaused, play, pause ],
+    });
+
+    useHotkeys({
+      keys: 'p, ctrl+down',
+      onKeyDown: () => pinStart(),
+      deps: [ pinStart ],
+    });
 
     // ------ Sound state handling ------
 
-    const hasSeekedUnstable = useRef(false);
+    const hasSeekedSound = useRef(false);
 
     // Re-initialize the sound data when the "Howl" object becomes available (or changes).
     // Register the dependency-less "Howl" listeners.
@@ -325,20 +333,30 @@ const HowlControlPanel =
         setIsPlaying(isPlaying);
         setIsPaused(!isPlaying && (position > 0.0));
 
+        const onHowlLoaded = function () {
+          setDuration(this.duration());
+        };
+
         // When the sound is played, registers the new state,
         // and tries to work around some quirks from the underlying audio library.
         const onHowlPlay = function (soundId) {
-          if (isUnstableHowl(this) && !hasSeekedUnstable.current) {
-            // When the "Howl" object uses multiple sounds, we can't be sure that any seek() we applied in onHowlStop()
-            // has taken effect on the sound that has just started.
-            hasSeekedUnstable.current = true;
+          if (
+            !hasSeekedSound.current
+            // Make sure to start at the right position when:
+            // - playback is started using the original button,
+            // - the "Howl" object uses multiple sounds, because we can't be sure that any seek()
+            //   we applied in onHowlStop() has taken effect on the sound that has just started.
+            && (!hasStartedPlayback.current || isUnstableHowl(this))
+          ) {
+            hasSeekedSound.current = true;
             this.seek(positionRef.current, soundId);
           } else {
             // seek() triggers both pause() and play(), so the "unstable" case will end up here too.
             setIsPlaying(true);
             setIsPaused(false);
             userPosition.current = null;
-            hasSeekedUnstable.current = false;
+            hasSeekedSound.current = false;
+            hasStartedPlayback.current = false;
           }
         };
 
@@ -348,22 +366,15 @@ const HowlControlPanel =
           userPosition.current = getHowlPosition(howl);
         };
 
-        // When the original playback buttons are used, the rate is reset to 1. If this happens, force our rate again.
-        const onHowlRate = () => {
-          if ((howl.rate() === 1) && (1 !== rateRef.current)) {
-            howl.rate(rateRef.current);
-          }
-        };
-
+        howl.once('load', onHowlLoaded);
         howl.on('play', onHowlPlay);
         howl.on('pause', onHowlPause);
-        howl.on('rate', onHowlRate);
 
         return () => {
           if (howl) {
+            howl.off('load', onHowlLoaded);
             howl.off('play', onHowlPlay);
             howl.off('pause', onHowlPause);
-            howl.off('rate', onHowlRate);
           }
         };
       }
@@ -376,7 +387,7 @@ const HowlControlPanel =
       setIsPlaying,
       setIsPaused,
       userPosition,
-      hasSeekedUnstable,
+      hasSeekedSound,
     ]);
 
     const isResettingSound = useRef(false);
@@ -450,8 +461,6 @@ const HowlControlPanel =
       }
     }, isPlaying && !isPaused ? 75 : null);
 
-    const getElementClassNames = useStyles(CLASS_NAMES, [ formStyle ]);
-
     const hasSound = isObject(howl);
 
     const rateHint = 1 === rate
@@ -462,47 +471,22 @@ const HowlControlPanel =
       ? '? / ?'
       : `${position.toFixed(1)}s / ${duration.toFixed(1)}s`;
 
-    const wrapperState = active ? WRAPPER__ACTIVE : null;
+    const isTouchDevice = useMedia('(hover: none), (pointer: none), (pointer: coarse)');
+
+    const wrapperStates = [
+      focused && WRAPPER__FOCUSED,
+      selected && WRAPPER__SELECTED,
+      (isExpanded || isToggled || (isHovered && !isTouchDevice)) && WRAPPER__OPENED,
+    ];
+
+    const getElementClassNames = useStyles(CLASS_NAMES, [ formStyle ]);
 
     return (
-      <div className={getElementClassNames([ WRAPPER, wrapperState ])}>
-        <ControlSlider
-          type={sliders.TYPE_RATE}
-          value={rate}
-          min={getTtsMinRate(ttsType)}
-          max={getTtsMaxRate(ttsType)}
-          step={RATE_STEP}
-          hint={rateHint}
-          onChangeStart={onRateChange}
-          onChange={onRateChange}
-          onChangeEnd={onRateChange}
-        />
-
-        <ControlSlider
-          type={sliders.TYPE_VOLUME}
-          value={volume}
-          min={getTtsMinVolume()}
-          max={getTtsMaxVolume()}
-          step={VOLUME_STEP}
-          hint={`${Math.round(volume * 100.0)}%`}
-          onChangeStart={onVolumeChange}
-          onChange={onVolumeChange}
-          onChangeEnd={onVolumeChange}
-        />
-
-        <ControlSlider
-          type={sliders.TYPE_POSITION}
-          value={position}
-          min={0.0}
-          max={duration}
-          step={POSITION_STEP}
-          hint={positionHint}
-          disabled={!hasSound}
-          onChangeStart={onLongSeekStart('slider', _)}
-          onChange={onSeek}
-          onChangeEnd={onLongSeekEnd('slider', _)}
-        />
-
+      <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={getElementClassNames([ WRAPPER, ...wrapperStates ])}
+      >
         <div className={getElementClassNames(BUTTONS_WRAPPER)}>
           {!isPlaying || isPaused
             ? (
@@ -531,46 +515,92 @@ const HowlControlPanel =
             onClick={pinStart}
           />
 
-          {active && (
-            <FontAwesomeIcon
-              icon="keyboard"
-              transform="grow-3"
-              className={getElementClassNames(KEYBOARD_HINT)}
-            />
+          <ControlButton
+            type={buttons.TYPE_TOGGLE}
+            active={isToggled}
+            onClick={() => setIsToggled(!isToggled)}
+          />
+
+          {(selected || focused) && (
+            <FontAwesomeIcon icon="keyboard" className={getElementClassNames(KEYBOARD_HINT)} />
           )}
         </div>
+
+        <ControlSlider
+          type={sliders.TYPE_POSITION}
+          value={position}
+          min={0.0}
+          max={duration}
+          step={POSITION_STEP}
+          hint={positionHint}
+          disabled={!hasSound}
+          onChangeStart={onLongSeekStart('slider', _)}
+          onChange={onSeek}
+          onChangeEnd={onLongSeekEnd('slider', _)}
+        />
+
+        <ControlSlider
+          type={sliders.TYPE_RATE}
+          value={rate}
+          min={getTtsMinRate(ttsSpeed)}
+          max={getTtsMaxRate(ttsSpeed)}
+          step={RATE_STEP}
+          hint={rateHint}
+          onChangeStart={onRateChange}
+          onChange={onRateChange}
+          onChangeEnd={onRateChange}
+        />
+
+        <ControlSlider
+          type={sliders.TYPE_VOLUME}
+          value={volume}
+          min={getTtsMinVolume()}
+          max={getTtsMaxVolume()}
+          step={VOLUME_STEP}
+          hint={`${Math.round(volume * 100.0)}%`}
+          onChangeStart={onVolumeChange}
+          onChange={onVolumeChange}
+          onChangeEnd={onVolumeChange}
+        />
       </div>
     );
   };
 
-export default HowlControlPanel;
+export default ControlPanel;
 
 const WRAPPER = 'wrapper';
-const WRAPPER__ACTIVE = 'wrapper__active';
+const WRAPPER__SELECTED = 'wrapper__selected';
+const WRAPPER__FOCUSED = 'wrapper__focused';
+const WRAPPER__OPENED = 'wrapper__opened';
 const BUTTONS_WRAPPER = 'button_wrapper';
 const KEYBOARD_HINT = 'keyboard_hint';
 
 const CLASS_NAMES = {
-  [BASE]: {
-    [WRAPPER]: [
-      `${EXTENSION_PREFIX}control-panel`,
-    ],
-    [WRAPPER__ACTIVE]: [
-      // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
-      '_3cbXv',
-      // Copied by searching for a class targeted by Darklingo++ to apply a better color ("tertiary"),
-      // while having no effect on the original UI.
-      'kAVeU',
-      `${EXTENSION_PREFIX}control-panel_active`,
-    ],
-    [BUTTONS_WRAPPER]: [
-      // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
-      // The class responsible for the null height is ignored here.
-      'gcfYU',
-      `${EXTENSION_PREFIX}control-buttons`,
-    ],
-    [KEYBOARD_HINT]: [
-      `${EXTENSION_PREFIX}control-keyboard-hint`,
-    ],
-  },
+  [BASE]: Object.assign(
+    {
+      [WRAPPER]: [
+        `${EXTENSION_PREFIX}control-panel`,
+      ],
+      [WRAPPER__SELECTED]: [
+        `${EXTENSION_PREFIX}selected`,
+      ],
+      [WRAPPER__FOCUSED]: [
+        `${EXTENSION_PREFIX}focused`,
+      ],
+      [WRAPPER__OPENED]: [
+        // Copied from the text answer field. Only the class responsible for the background and border is used here.
+        '_2ti2i',
+        `${EXTENSION_PREFIX}opened`,
+      ],
+      [BUTTONS_WRAPPER]: [
+        // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
+        // The class responsible for the null height is ignored here.
+        'gcfYU',
+        `${EXTENSION_PREFIX}control-buttons`,
+      ],
+      [KEYBOARD_HINT]: [
+        `${EXTENSION_PREFIX}control-keyboard-hint`,
+      ],
+    }
+  )
 };

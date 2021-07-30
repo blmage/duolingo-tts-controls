@@ -1,11 +1,4 @@
 /**
- * The code of the extension.
- *
- * @type {string}
- */
-export const EXTENSION_CODE = 'duolingo-tts-controls';
-
-/**
  * A prefix based on the extension code.
  *
  * @type {string}
@@ -18,23 +11,6 @@ export const EXTENSION_PREFIX = '_duo-ttsc_';
  * @type {string[]}
  */
 export const DIGIT_CHARS = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ];
-
-/**
- * The internal types identifying listening challenges.
- *
- * @type {string[]}
- */
-export const LISTENING_CHALLENGE_TYPES = [
-  'listen',
-  'listenTap',
-];
-
-/**
- * A RegExp for the URL that is used by Duolingo to start a new practice session.
- *
- * @type {RegExp}
- */
-export const NEW_SESSION_URL_REGEXP = /\/[\d]{4}-[\d]{2}-[\d]{2}\/sessions/g;
 
 /**
  * The style of listening challenge forms featuring basic playback buttons.
@@ -59,46 +35,3 @@ export const FORM_STYLES = [
   FORM_STYLE_BASIC,
   FORM_STYLE_CARTOON,
 ];
-
-/**
- * The playback state of played sounds.
- *
- * @type {string}
- */
-export const PLAYBACK_STATE_PLAYING = 'playing';
-
-/**
- * The playback state of paused sounds.
- *
- * @type {string}
- */
-export const PLAYBACK_STATE_PAUSED = 'paused';
-
-/**
- * The playback state of stopped sounds.
- *
- * @type {string}
- */
-export const PLAYBACK_STATE_STOPPED = 'stopped';
-
-
-/**
- * The amount by which to decrease/increase the playback rate on a single step.
- *
- * @type {number}
- */
-export const RATE_STEP = 0.1;
-
-/**
- * The amount by which to decrease/increase the playback volume on a single step.
- *
- * @type {number}
- */
-export const VOLUME_STEP = 0.05;
-
-/**
- * The amount by which to decrease/increase the playback position on a single step.
- *
- * @type {number}
- */
-export const POSITION_STEP = 0.1;

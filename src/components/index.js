@@ -1,5 +1,5 @@
 import { useCallback } from 'preact/hooks';
-import { isArray } from '../functions';
+import { isArray } from 'duo-toolbox/utils/functions';
 
 /**
  * The key under which to store the class names of an element that are always applicable,

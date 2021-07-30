@@ -7,7 +7,7 @@ import { terser } from 'rollup-plugin-terser';
 
 const { PRODUCTION } = process.env;
 
-const sources = [ 'content', 'ui' ];
+const sources = [ 'content', 'observer', 'ui' ];
 
 const plugins = [
   babel({
@@ -22,6 +22,7 @@ const plugins = [
     browser: true,
   }),
   replace({
+    preventAssignment: true,
     'process.env.NODE_ENV': JSON.stringify(PRODUCTION ? 'production' : 'development'),
   }),
   commonjs({

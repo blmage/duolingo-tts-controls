@@ -1,6 +1,6 @@
 {
   "name": "Duolingo TTS Controls",
-  "version": "1.3.4",
+  "version": "2.0.0",
   "description": "Provides playback controls for the listening challenges on Duolingo.",
   "permissions": [
     "activeTab",
@@ -14,21 +14,9 @@
     }
   ],
   "web_accessible_resources": [
+    "src/observer.js",
     "src/ui.js",
-    "assets/css/ui.css",
-    "assets/images/close.svg",
-    "assets/images/keyboard.svg",
-    "assets/images/pause.svg",
-    "assets/images/pin.svg",
-    "assets/images/play.svg",
-    "assets/images/rate-max.svg",
-    "assets/images/rate-min.svg",
-    "assets/images/time-max.svg",
-    "assets/images/time-min.svg",
-    "assets/images/settings.svg",
-    "assets/images/stop.svg",
-    "assets/images/volume-max.svg",
-    "assets/images/volume-min.svg"
+    "assets/css/ui.css"
   ],
   "icons": {
     "16": "icons/icon_16.png",
