@@ -1,6 +1,6 @@
 {
   "name": "duolingo-tts-controls",
-  "description": "A small browser extension providing playback controls for the listening challenges on Duolingo.",
+  "description": "A small browser extension providing playback controls for some of the challenges on Duolingo.",
   "license": "MIT",
   "author": "blmage",
   "version": "2.0.0",
