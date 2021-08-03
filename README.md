@@ -9,8 +9,8 @@
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/hfgbpmknceenkbljmjlogkmhbpnbiika)](https://chrome.google.com/webstore/detail/duolingo-tts-controls/hfgbpmknceenkbljmjlogkmhbpnbiika)
 [![Mozilla Add-on](https://img.shields.io/amo/v/duolingo-tts-controls)](https://addons.mozilla.org/firefox/addon/duolingo-tts-controls/)
 
-A small browser extension providing **playback controls** for the **listening challenges** on
-[Duolingo](https://www.duolingo.com).
+A small browser extension providing **playback controls** for the **listening** / **speaking** / **translation**
+challenges on [Duolingo](https://www.duolingo.com).
 
 ### Table of contents
 
@@ -28,21 +28,13 @@ A small browser extension providing **playback controls** for the **listening ch
 
 ### Features
 
-* Appends a control button to each of the playback buttons in the listening challenges:
+* Adds controls to each sound of the listening / speaking / translation challenges:
 
-  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_toggle_buttons.png" width="500" />
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/listening_challenge_controls.png" width="400" />
 
-  ------
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/translation_challenge_controls.png" width="400" />
 
-  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_toggle_buttons_cartoon.png" width="500" />
-
-* Clicking on a control button opens the corresponding control panel:
-
-  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_normal_controls_panel.png" width="300" />
-
-  ------
-
-  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/base_slow_controls_panel_cartoon.png" width="500" />
+* The control panels get expanded when you hover over the buttons or use the [keyboard shortcuts](#keyboard-shortcuts).
 
 * The available controls include:
   
@@ -52,38 +44,46 @@ A small browser extension providing **playback controls** for the **listening ch
 
   * a seek bar,
 
-  * a play/pause button,
+  * a play / pause button,
 
   * a stop button,
 
-  * a "start pinning" button, to define the current position as the new start position.
+  * a "pin" button (to define the current position as the new starting position).
 
 * Strives to blend seamlessly in [Duolingo](https://www.duolingo.com)'s UI, and to be compatible with custom themes
   such as [Darklingo++](https://userstyles.org/styles/169205/darklingo):
 
-  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/dark_controls_panel.png" width="500" />
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/dark_listening_challenge_controls.png" width="400" />
 
-  ------
-
-  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets/dark_controls_panel_cartoon.png" width="500" />
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/dark_translation_challenge_controls.png" width="400" />
 
 ### Keyboard shortcuts
 
-When controls are available, and:
+The currently selected control panel is identifiable by the keyboard icon that is added next to its buttons:
 
-* no control panel is displayed, use:
+<p float="left">
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/selected_controls_icon.png" width="150" />  
 
-  * `Ctrl` / `Control` to open the first panel.
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/dark_selected_controls_icon.png" width="150" />
+</p>
 
-* a control panel is displayed, use:
+When a control panel is focused, the keyboard icon is highlighted: 
+
+<p float="left">
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/focused_controls_icon.png" width="150" />
+
+  <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/dark_focused_controls_icon.png" width="150" />
+</p>
+
+When no control panel is focused, use:
+
+  * `Ctrl` to focus the selected control panel.
   
-  * `Ctrl` / `Control` to switch focus back and forth between the panel and the answer input,
+When a control panel is focused, use:
 
-  * `Tab` to cycle through the available panels,
+  * `Ctrl` to focus back the current answer input,
 
-  * `Esc` to close the panel.
-
-* a control panel is displayed and focused (*a keyboard icon is visible in the lower-right corner*), use:
+  * `Tab` to select (and focus) the next control panel,
 
   * `<` / `>` (_or `Ctrl` + `←` / `→`_) to decrease / increase the playback rate (speed),
 
@@ -99,7 +99,7 @@ When controls are available, and:
 
   * `Space` / `k` (_or `Ctrl` + `↑`_) to play / pause the sound,
 
-  * `p` (_or `Ctrl` + `↓`_) to "pin" the current position (the sound will start from there from now on).
+  * `p` (_or `Ctrl` + `↓`_) to "pin" the current position (the sound will now start from there each time it is played).
 
 _Shortcuts behind parentheses are provided as alternatives for when the main ones are not available._
 
