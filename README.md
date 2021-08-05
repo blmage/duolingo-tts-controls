@@ -34,9 +34,8 @@ challenges on [Duolingo](https://www.duolingo.com).
 
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/translation_challenge_controls.png" width="400" />
 
-* The control panels get expanded when you hover over the buttons or use the [keyboard shortcuts](#keyboard-shortcuts).
-
-* The available controls include:
+* Full controls are available by hovering over the buttons or using the [keyboard shortcuts](#keyboard-shortcuts), 
+  and feature:
   
   * a rate (speed) slider,
 
@@ -59,7 +58,7 @@ challenges on [Duolingo](https://www.duolingo.com).
 
 ### Keyboard shortcuts
 
-The currently selected control panel is identifiable by the keyboard icon that is added next to its buttons:
+The selected control panel is identifiable by the keyboard icon that is added next to its buttons:
 
 <p float="left">
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/selected_controls_icon.png" width="150" />  
@@ -67,21 +66,19 @@ The currently selected control panel is identifiable by the keyboard icon that i
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/dark_selected_controls_icon.png" width="150" />
 </p>
 
-When a control panel is focused, the keyboard icon is highlighted: 
+In order to use the keyboard shortcuts, the selected control panel must be focused by pressing `Ctrl`.
+
+Once focused, the keyboard icon becomes highlighted.. :
 
 <p float="left">
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/focused_controls_icon.png" width="150" />
 
   <img src="https://raw.githubusercontent.com/blmage/duolingo-tts-controls/assets_v2/dark_focused_controls_icon.png" width="150" />
 </p>
-
-When no control panel is focused, use:
-
-  * `Ctrl` to focus the selected control panel.
   
-When a control panel is focused, use:
+.. and you can use:
 
-  * `Ctrl` to focus back the current answer input,
+  * `Ctrl` to focus back the answer input,
 
   * `Tab` to select (and focus) the next control panel,
 
