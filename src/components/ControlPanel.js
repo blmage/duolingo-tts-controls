@@ -54,7 +54,14 @@ const ControlPanel =
     const [ isToggled, setIsToggled ] = useState(false);
     const [ isExpanded, setIsExpanded ] = useState(false);
 
-    const [ , cancelPanelCollapse, collapsePanel ] = useTimeoutFn(() => setIsExpanded(false), 750);
+    const [ , cancelPanelHover, hoverPanel ] = useTimeoutFn(() => setIsHovered(true), 200, false);
+
+    const unHoverPanel = useCallback(() => {
+      setIsHovered(false);
+      cancelPanelHover();
+    }, [ setIsHovered, cancelPanelHover ]);
+
+    const [ , cancelPanelCollapse, collapsePanel ] = useTimeoutFn(() => setIsExpanded(false), 750, false);
 
     const expandPanel = useCallback(() => {
       setIsExpanded(true);
@@ -483,8 +490,8 @@ const ControlPanel =
 
     return (
       <div
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={hoverPanel}
+        onMouseLeave={unHoverPanel}
         className={getElementClassNames([ WRAPPER, ...wrapperStates ])}
       >
         <div className={getElementClassNames(BUTTONS_WRAPPER)}>
