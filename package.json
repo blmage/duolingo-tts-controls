@@ -16,9 +16,9 @@
     "@fortawesome/pro-regular-svg-icons": "^5.15.3",
     "@fortawesome/pro-solid-svg-icons": "^5.15.3",
     "@fortawesome/react-fontawesome": "^0.1.14",
-    "duo-toolbox": "git+https://github.com/blmage/duo-toolbox.git",
+    "duo-toolbox": "git+https://github.com/blmage/duo-toolbox.git#semver:^1.0.0",
     "preact": "10.4.8",
-    "preact-use": "git+https://github.com/blmage/preact-use.git",
+    "preact-use": "git+https://github.com/blmage/preact-use.git#semver:^17.3.1-patch",
     "react-hotkeys-hook": "^3.4.0"
   },
   "devDependencies": {
@@ -35,7 +35,7 @@
     "eslint-config-preact": "^1.1.4",
     "eslint-plugin-jsdoc": "^30.7.13",
     "eslint-plugin-react": "^7.24.0",
-    "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git",
+    "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git#semver:^3.2.2-patch",
     "rollup": "^2.55.1",
     "rollup-plugin-strict-alias": "^1.0.0",
     "rollup-plugin-terser": "^7.0.2"
