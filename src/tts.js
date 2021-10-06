@@ -188,6 +188,7 @@ export const applyTtsSettingsToHowlSound = (rate, volume, howl) => {
     rate,
     howl,
     SOUND_PLAYBACK_STRATEGY_HOWLER,
+    false,
     PRIORITY_HIGH
   );
 
@@ -196,6 +197,7 @@ export const applyTtsSettingsToHowlSound = (rate, volume, howl) => {
     volume,
     howl,
     SOUND_PLAYBACK_STRATEGY_HOWLER,
+    false,
     PRIORITY_HIGH
   );
 };
