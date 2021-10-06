@@ -104,9 +104,6 @@ const CLASS_NAMES = {
     [HINT]: [
       // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
       '_3cbXv',
-      // Copied by searching for a class targeted by Darklingo++ to apply a better color ("tertiary"),
-      // while having no effect on the original UI.
-      'kAVeU',
       `${EXTENSION_PREFIX}slider-hint`,
     ],
     [HINT_ICON]: [

@@ -120,9 +120,6 @@ const CLASS_NAMES = {
       [ICON]: [
         // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
         '_3cbXv',
-        // Copied by searching for a class targeted by Darklingo++ to apply a better color ("tertiary"),
-        // while having no effect on the original UI.
-        'kAVeU',
         `${EXTENSION_PREFIX}control-button-icon`,
       ]
     },
