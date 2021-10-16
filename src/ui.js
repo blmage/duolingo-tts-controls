@@ -1,6 +1,7 @@
 import { h, render } from 'preact';
 import { _, it } from 'one-liner.macro';
-import { library } from '@fortawesome/fontawesome-svg-core';
+import { config as faConfig, library } from '@fortawesome/fontawesome-svg-core';
+import '@fortawesome/fontawesome-svg-core/styles.css'
 import { faCog, faKeyboard, faPause, faPlay, faStop, faThumbtack } from '@fortawesome/free-solid-svg-icons';
 import { faClock, faTachometerAlt, faVolume } from '@fortawesome/pro-regular-svg-icons';
 import { faTurtle, faVolume as fasVolume } from '@fortawesome/pro-solid-svg-icons';
@@ -10,9 +11,13 @@ import { onPracticeChallengesLoaded, onSoundInitialized, onSoundPlaybackRequeste
 import { SOUND_PLAYBACK_STRATEGY_HOWLER, SOUND_SPEED_NORMAL, SOUND_SPEED_SLOW } from 'duo-toolbox/duo/sounds';
 import { MUTEX_HOTKEYS, PRIORITY_AVERAGE, requestMutex } from 'duo-toolbox/extension/ui';
 import { EXTENSION_PREFIX, FORM_STYLE_BASIC, FORM_STYLE_CARTOON, FORM_STYLES } from './constants';
+import { applyCurrentTtsSettingsToHowlSound } from './tts';
 import ControlButton, { TYPE_SPEED_NORMAL, TYPE_SPEED_SLOW } from './components/ControlButton';
 import ControlPanel from './components/ControlPanel.js';
-import { applyCurrentTtsSettingsToHowlSound } from "./tts";
+import './css/ui.css';
+
+// When using the default behavior, FA styles are not always added to the pages, resulting in huge icons.
+faConfig.autoAddCss = false;
 
 // Register the FontAwesome icons.
 library.add(

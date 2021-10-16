@@ -3,13 +3,12 @@ import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
+import css from 'rollup-plugin-purified-css';
 import { terser } from 'rollup-plugin-terser';
 
 const { PRODUCTION } = process.env;
 
-const sources = [ 'content', 'observer', 'ui' ];
-
-const plugins = [
+const BASE_PLUGINS = [
   babel({
     babelHelpers: 'bundled',
     exclude: 'node_modules/**',
@@ -34,16 +33,30 @@ const plugins = [
   }),
 ];
 
-if (PRODUCTION) {
-  plugins.push(terser());
-}
+const SOURCE_PLUGINS = {
+  'ui': [
+    css({
+      output: 'dist/assets/css/ui.css',
+    })
+  ],
+};
 
-export default sources.map(source => ({
+const getSourcePlugins = source => (
+  BASE_PLUGINS
+    .concat(SOURCE_PLUGINS[source] || [])
+    .concat(PRODUCTION ? [ terser() ] : [])
+);
+
+export default [
+  'content',
+  'observer',
+  'ui',
+].map(source => ({
   input: `src/${source}.js`,
   output: {
     file: `dist/src/${source}.js`,
     format: 'iife',
   },
   treeshake: true,
-  plugins,
+  plugins: getSourcePlugins(source),
 }));
