@@ -3,7 +3,6 @@
   "version": "2.2.0",
   "description": "Provides playback controls for some of the challenges on Duolingo.",
   "permissions": [
-    "activeTab",
     "https://*.duolingo.com/"
   ],
   "content_scripts": [
