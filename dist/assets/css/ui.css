@@ -598,8 +598,7 @@ svg:not(:root).svg-inline--fa {
   padding-bottom: 0;
 }
 
-._duo-ttsc_control-panel:not(._duo-ttsc_opened) ._duo-ttsc_slider:nth-child(n + 3),
-._duo-ttsc_control-panel:not(._duo-ttsc_opened) ._duo-ttsc_slider-hint {
+._duo-ttsc_control-panel:not(._duo-ttsc_opened) ._duo-ttsc_slider:nth-child(n + 3),._duo-ttsc_control-panel:not(._duo-ttsc_opened) ._duo-ttsc_slider-hint {
   display: none;
 }
 
