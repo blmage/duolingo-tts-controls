@@ -16,7 +16,7 @@
     "@fortawesome/pro-regular-svg-icons": "^5.15.3",
     "@fortawesome/pro-solid-svg-icons": "^5.15.3",
     "@fortawesome/react-fontawesome": "^0.1.14",
-    "duo-toolbox": "git+https://github.com/blmage/duo-toolbox.git#semver:^3.4.0",
+    "duo-toolbox": "git+https://github.com/blmage/duo-toolbox.git#semver:^3.5.0",
     "preact": "10.4.8",
     "preact-use": "git+https://github.com/blmage/preact-use.git#semver:^17.3.1-patch",
     "react-hotkeys-hook": "^3.4.0"
