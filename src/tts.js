@@ -16,21 +16,18 @@ import {
 
 /**
  * The amount by which to decrease / increase the playback rate on a single step.
- *
  * @type {number}
  */
 export const RATE_STEP = 0.1;
 
 /**
  * The amount by which to decrease / increase the playback volume on a single step.
- *
  * @type {number}
  */
 export const VOLUME_STEP = 0.05;
 
 /**
  * The amount by which to decrease / increase the playback position on a single step.
- *
  * @type {number}
  */
 export const POSITION_STEP = 0.1;
@@ -176,7 +173,6 @@ export const isUnstableHowl = it._getSoundIds().length > 1;
 
 /**
  * Applies the given rate and volume to a "Howl" object.
- *
  * @param {number} rate A playback rate.
  * @param {number} volume A playback volume.
  * @param {object} howl A "Howl" object from the "howler.js" library.
@@ -204,7 +200,6 @@ export const applyTtsSettingsToHowlSound = (rate, volume, howl) => {
 
 /**
  * Applies the current rate and volume settings of a given TTS speed to a "Howl" object.
- *
  * @param {string} ttsSpeed A TTS speed.
  * @param {object} howl A "Howl" object from the "howler.js" library.
  * @returns {void}

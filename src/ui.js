@@ -36,7 +36,6 @@ library.add(
 
 /**
  * A control form for a TTS sound.
- *
  * @typedef {object} ControlForm
  * @property {string} formStyle The style of the parent challenge form.
  * @property {string} ttsType The type of the TTS sound controlled by the form.
@@ -49,35 +48,30 @@ library.add(
 
 /**
  * The available control forms for the current challenge, arranged by TTS type.
- *
- * @type {object.<string, ControlForm>}
+ * @type {{[key: string]: ControlForm}}
  */
 let currentControlForms = {};
 
 /**
  * The wrapper for the switch button usable to cycle through the control forms of the current challenge, if any.
- *
  * @type {Element|null}
  */
 let currentSwitchButtonWrapper = null;
 
 /**
  * The last seen wrapper for the original playback buttons of a challenge.
- *
  * @type {Element|null}
  */
 let lastPlaybackButtonsWrapper = null;
 
 /**
  * A promise for if and when the hotkeys mutex will have been acquired, when a request is pending.
- *
  * @type {Promise|null}
  */
 let hotkeysMutexPromise = null;
 
 /**
  * A callback usable to release the hotkeys mutex, once it has been acquired.
- *
  * @type {Function|null}
  */
 let hotkeysMutexReleaseCallback = null;
@@ -85,7 +79,6 @@ let hotkeysMutexReleaseCallback = null;
 /**
  * Finds the form elements of a given type in a given parent element (or in the document body),
  * and marks them using a set of extension-specific class names.
- *
  * @param {string} elementType An element type.
  * @param {string} formStyle A form style.
  * @param {?Element} parentElement The parent element in which to restrict the search.
@@ -121,7 +114,6 @@ const getFocusedControlForm = () => Object.values(currentControlForms).find(it.i
 
 /**
  * Refreshes the form controlling the TTS sound of a given type.
- *
  * @param {string} ttsType A TTS type.
  * @returns {void}
  */
@@ -164,7 +156,6 @@ const refreshControlForm = ttsType => {
  * Selects the control form controlling the TTS sound of a given type.
  *
  * If the previously selected form (if any) was focused, the newly selected form will be focused too.
- *
  * @param {string} ttsType A TTS type.
  * @returns {void}
  */
@@ -192,7 +183,6 @@ const selectControlForm = ttsType => {
 
 /**
  * Selects the next available control form, or the first if none was already selected.
- *
  * @returns {void}
  */
 const selectNextControlForm = () => {
@@ -209,7 +199,6 @@ const selectNextControlForm = () => {
  * Attempts to acquire the hotkeys mutex in a short delay.
  *
  * The mutex will be released if it is requested with a high priority by another extension.
- *
  * @returns {Promise<void>} A promise for if and when the hotkeys mutex has been acquired.
  */
 const acquireHotkeysMutex = () => {
@@ -241,7 +230,6 @@ const acquireHotkeysMutex = () => {
 
 /**
  * Releases the hotkeys mutex, if it had been previously acquired.
- *
  * @returns {void}
  */
 const releaseHotkeysMutex = () => {
@@ -253,7 +241,6 @@ const releaseHotkeysMutex = () => {
 
 /**
  * Attempts to focus the currently selected control form by acquiring the hotkeys mutex.
- *
  * @returns {Promise<void>} A promise for if and when the control form has been focused.
  */
 const focusSelectedControlForm = () => {
@@ -272,7 +259,6 @@ const focusSelectedControlForm = () => {
 
 /**
  * Blurs the currently focused control form, and releases the hotkeys mutex.
- *
  * @returns {void}
  */
 const blurSelectedControlForm = () => {
@@ -290,7 +276,6 @@ const blurSelectedControlForm = () => {
  * Cleans up all the current control forms by unmounting the underlying panels.
  *
  * This allows to make sure that all the corresponding lifecycle events have been called.
- *
  * @param {boolean} force Whether to force the cleanup, even if the forms are still present in the DOM.
  * @returns {void}
  */
@@ -310,8 +295,7 @@ setInterval(() => cleanUpControlForms(), 100);
 
 /**
  * Prepares the control forms for a given set of TTS sounds.
- *
- * @param {object<string, object>} sounds The new TTS sounds that should be controlled.
+ * @param {{[key: string]: object}} sounds The new TTS sounds that should be controlled.
  * @returns {void}
  */
 const prepareControlForms = sounds => {
@@ -403,12 +387,12 @@ const prepareControlForms = sounds => {
 const challengeTtsUrls = new Set();
 
 /**
- * @type {object.<string, string[]>}
+ * @type {{[key: string]: string[]}}
  */
 const relatedTtsUrls = {};
 
 /**
- * @type {object.<string, object>}
+ * @type {{[key: string]: object}}
  */
 const initializedTtsData = {};
 
@@ -466,7 +450,6 @@ onSoundPlaybackRequested(sound => {
 /**
  * Whether we are currently resetting the tabbing position,
  * triggering meaningless "focusin" / "focusout" events in the process.
- *
  * @type {boolean}
  */
 let isResettingTabbingPosition = false;
@@ -489,7 +472,6 @@ document.addEventListener(
 
 /**
  * The global keyboard shortcuts, arranged by key.
- *
  * @type {object}
  */
 const keyboardShortcuts = {
@@ -530,14 +512,12 @@ const keyboardShortcuts = {
 
 /**
  * The set of all the keys that are currently pressed.
- *
  * @type {Set<string>}
  */
 const pressedKeys = new Set();
 
 /**
  * The code of the key that has been currently pressed while none other was.
- *
  * @type {string|null}
  */
 let singlePressedKey = null;
@@ -579,28 +559,24 @@ window.addEventListener('blur', () => {
 
 /**
  * A wrapper for a set of playback buttons.
- *
  * @type {string}
  */
 const PLAYBACK_BUTTONS_WRAPPER = 'playback-buttons-wrapper';
 
 /**
  * A wrapper for a single playback button.
- *
  * @type {string}
  */
 const PLAYBACK_BUTTON_WRAPPER = 'playback-button-wrapper';
 
 /**
  * A playback button for TTS of any speed.
- *
  * @type {string}
  */
 const PLAYBACK_BUTTON = 'playback-button';
 
 /**
  * A playback button for slow TTS.
- *
  * @type {string}
  */
 const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
@@ -608,7 +584,6 @@ const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
 /**
  * The CSS selectors for the different UI elements we need to find, mark, and possibly adapt.
  * Sorted by element type and form style.
- *
  * @type {object}
  */
 const ELEMENT_SELECTORS = {
@@ -638,7 +613,6 @@ const ELEMENT_SELECTORS = {
 
 /**
  * The class names to apply to the control forms.
- *
  * @type {string[]}
  */
 const CONTROL_FORM_BASE_CLASS_NAMES = [
@@ -651,7 +625,6 @@ const CONTROL_FORM_BASE_CLASS_NAMES = [
 
 /**
  * A CSS selector for the free answer input of a challenge.
- *
  * @type {string}
  */
 const ANSWER_INPUT_SELECTOR = [
