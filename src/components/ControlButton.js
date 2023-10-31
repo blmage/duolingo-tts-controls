@@ -61,6 +61,7 @@ const ControlButton = ({ type, disabled = false, active = false, onClick = noop 
     BUTTON,
     `BUTTON__${type}`,
     active && BUTTON__ACTIVE,
+    disabled && BUTTON__DISABLED,
   ];
 
   return (
@@ -88,6 +89,7 @@ export default ControlButton;
 const WRAPPER = 'wrapper';
 const BUTTON = 'button';
 const BUTTON__ACTIVE = 'button__active';
+const BUTTON__DISABLED = 'button__disabled';
 const ICON = 'icon';
 
 const CLASS_NAMES = {
@@ -99,14 +101,19 @@ const CLASS_NAMES = {
       ],
       // Copied from the special letter buttons.
       [BUTTON]: [
-        'WOZnx',
-        '_275sd',
-        '_1ZefG',
+        '_1N-oo',
+        '_36Vd3',
+        '_16r-S',
         '_3f9XI',
         `${EXTENSION_PREFIX}control-button`,
       ],
       [BUTTON__ACTIVE]: [
         'k6MEx',
+      ],
+      [BUTTON__DISABLED]: [
+        '_33Jbm',
+        // Copied by searching for a class that resets the bottom border, alongside the other button classes.
+        '_1_xfn',
       ],
       [ICON]: [
         // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
