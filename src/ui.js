@@ -1,5 +1,5 @@
 import { h, render } from 'preact';
-import { _, it } from 'one-liner.macro';
+import { _, it, lift } from 'one-liner.macro';
 import { config as faConfig, library } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import { faCog, faKeyboard, faPause, faPlay, faStop, faThumbtack } from '@fortawesome/free-solid-svg-icons';
@@ -82,10 +82,13 @@ let hotkeysMutexReleaseCallback = null;
  * @param {string} elementType An element type.
  * @param {string} formStyle A form style.
  * @param {?Element} parentElement The parent element in which to restrict the search.
+ * @param {Function} predicate A predicate to filter the found elements.
  * @returns {Element[]} The searched form elements.
  */
-const findAndMarkFormElements = (elementType, formStyle, parentElement = document.body) => {
-  const elements = Array.from(parentElement.querySelectorAll(ELEMENT_SELECTORS[elementType][formStyle]));
+const findAndMarkFormElements = (elementType, formStyle, parentElement = document.body, predicate = () => true) => {
+  const elements = Array
+    .from(parentElement.querySelectorAll(ELEMENT_SELECTORS[elementType][formStyle]))
+    .filter(predicate);
 
   elements.forEach(element => {
     element.classList.add(
@@ -302,7 +305,13 @@ const prepareControlForms = sounds => {
   let playbackButtonsWrapper = null;
 
   const formStyle = FORM_STYLES.find(style => {
-    [ playbackButtonsWrapper ] = findAndMarkFormElements(PLAYBACK_BUTTONS_WRAPPER, style);
+    [ playbackButtonsWrapper ] = findAndMarkFormElements(
+      PLAYBACK_BUTTONS_WRAPPER,
+      style,
+      document.body,
+      lift(!it.matches(PREVIOUS_CHALLENGE_ELEMENT_SELECTOR))
+    );
+
     return !!playbackButtonsWrapper;
   });
 
@@ -587,29 +596,35 @@ const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
  * @type {object}
  */
 const ELEMENT_SELECTORS = {
-  // Two forms can be present on the page at a given time, the inactive one being hidden under the other using
-  // a negative z-index on a wrapper (inside a "[ancestor_class]:nth-child(2)" rule).
-  // Use [ancestor_class]:first-child here to make sure we target the right form.
+
   [PLAYBACK_BUTTONS_WRAPPER]: {
-    [FORM_STYLE_BASIC]: '._863KE:first-child ._3L7Fu',
-    [FORM_STYLE_CARTOON]: '._863KE:first-child ._2O14B',
+    [FORM_STYLE_BASIC]: '._2NlPH ._3fsyn',
+    [FORM_STYLE_CARTOON]: '._2fSyt ._2D8KS',
   },
   // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {
-    [FORM_STYLE_BASIC]: '.sgs9X',
-    [FORM_STYLE_CARTOON]: '.sgs9X',
+    [FORM_STYLE_BASIC]: '._3xeI3',
+    [FORM_STYLE_CARTOON]: '.rRgcH',
   },
-  // The <button> elements which trigger playing the TTS sounds.
+  // The <button> elements which trigger playing the TTS sounds (both normal and slow).
   [PLAYBACK_BUTTON]: {
-    [FORM_STYLE_BASIC]: '._1x6bc',
-    [FORM_STYLE_CARTOON]: '._2kfEr',
+    [FORM_STYLE_BASIC]: '.hWH3-',
+    [FORM_STYLE_CARTOON]: '.bafGS',
   },
   // The <button> elements which trigger playing the slow TTS sounds.
   [SLOW_PLAYBACK_BUTTON]: {
-    [FORM_STYLE_BASIC]: '._1Uoqa',
-    [FORM_STYLE_CARTOON]: '._1Vrvu',
+    [FORM_STYLE_BASIC]: '._3xkvC',
+    // todo when both speeds are available, the cartoon version does not seem to be used anymore?
+    [FORM_STYLE_CARTOON]: 'todo',
   },
 }
+
+/**
+ * A CSS selector for matching any element that belongs to the previous challenge
+ * (the previous challenge elements may still be present on the page, and hidden using opacity).
+ * @type {string}
+ */
+const PREVIOUS_CHALLENGE_ELEMENT_SELECTOR = '.i_c9v *';
 
 /**
  * The class names to apply to the control forms.

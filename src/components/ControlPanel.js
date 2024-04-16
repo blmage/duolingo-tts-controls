@@ -596,13 +596,13 @@ const CLASS_NAMES = {
       ],
       [WRAPPER__OPENED]: [
         // Copied from the text answer field. Only the class responsible for the background and border is used here.
-        '_2ti2i',
+        '_3zGeZ',
         `${EXTENSION_PREFIX}opened`,
       ],
       [BUTTONS_WRAPPER]: [
         // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
         // The class responsible for the null height is ignored here.
-        'gcfYU',
+        '_1rTak',
         `${EXTENSION_PREFIX}control-buttons`,
       ],
       [KEYBOARD_HINT]: [

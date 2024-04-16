@@ -98,13 +98,14 @@ const CLASS_NAMES = {
       // Copied from the direct wrapper of each special letter button provided for some languages (such as French).
       [WRAPPER]: [
         '_1OCDB',
+        '_3FVNQ',
       ],
       // Copied from the special letter buttons.
       [BUTTON]: [
         '_1N-oo',
         '_36Vd3',
         '_16r-S',
-        '_3f9XI',
+        '_8oomW',
         `${EXTENSION_PREFIX}control-button`,
       ],
       [BUTTON__ACTIVE]: [
