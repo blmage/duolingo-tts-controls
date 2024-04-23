@@ -97,8 +97,8 @@ const CLASS_NAMES = {
     {
       // Copied from the direct wrapper of each special letter button provided for some languages (such as French).
       [WRAPPER]: [
-        '_1OCDB',
         '_3FVNQ',
+        'wQ_9d',
       ],
       // Copied from the special letter buttons.
       [BUTTON]: [
@@ -106,19 +106,20 @@ const CLASS_NAMES = {
         '_36Vd3',
         '_16r-S',
         '_8oomW',
+        '_8AMBh',
+        '_2vfJy',
+        '_3Qy5R',
+        '_2yFpW',
         `${EXTENSION_PREFIX}control-button`,
       ],
-      [BUTTON__ACTIVE]: [
-        'k6MEx',
-      ],
       [BUTTON__DISABLED]: [
-        '_33Jbm',
+        '_20q0d',
         // Copied by searching for a class that resets the bottom border, alongside the other button classes.
         '_1_xfn',
       ],
       [ICON]: [
-        // Copied from the "Use keyboard" / "Use word bank" button. Only the color is used here.
-        '_3cbXv',
+        // Copied by searching for a class applying the color of the "Use keyboard" / "Use word bank" button.
+        '_39VxU',
         `${EXTENSION_PREFIX}control-button-icon`,
       ]
     },

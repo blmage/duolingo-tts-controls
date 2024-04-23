@@ -95,10 +95,8 @@ const CLASS_NAMES = {
     ],
     [INPUT]: [
       // Copied from the session progress bar.
-      '_2YmyD',
       '_2_zk1',
-      // Copied from the most appropriate background of the session progress bar.
-      '_2Z5hP',
+      'GaL6P',
       `${EXTENSION_PREFIX}slider-input`,
     ],
     [HINT]: [

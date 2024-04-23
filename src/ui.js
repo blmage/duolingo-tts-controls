@@ -596,24 +596,23 @@ const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
  * @type {object}
  */
 const ELEMENT_SELECTORS = {
-
   [PLAYBACK_BUTTONS_WRAPPER]: {
-    [FORM_STYLE_BASIC]: '._2NlPH ._3fsyn',
-    [FORM_STYLE_CARTOON]: '._2fSyt ._2D8KS',
+    [FORM_STYLE_BASIC]: '._3C4MQ ._3qAs-',
+    [FORM_STYLE_CARTOON]: '._31yjb ._2TvN0',
   },
   // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {
-    [FORM_STYLE_BASIC]: '._3xeI3',
-    [FORM_STYLE_CARTOON]: '.rRgcH',
+    [FORM_STYLE_BASIC]: '._1fdKO',
+    [FORM_STYLE_CARTOON]: '._1fdKO',
   },
   // The <button> elements which trigger playing the TTS sounds (both normal and slow).
   [PLAYBACK_BUTTON]: {
-    [FORM_STYLE_BASIC]: '.hWH3-',
-    [FORM_STYLE_CARTOON]: '.bafGS',
+    [FORM_STYLE_BASIC]: '._23274',
+    [FORM_STYLE_CARTOON]: '._1GJVt',
   },
   // The <button> elements which trigger playing the slow TTS sounds.
   [SLOW_PLAYBACK_BUTTON]: {
-    [FORM_STYLE_BASIC]: '._3xkvC',
+    [FORM_STYLE_BASIC]: '.rnwSx',
     // todo when both speeds are available, the cartoon version does not seem to be used anymore?
     [FORM_STYLE_CARTOON]: 'todo',
   },
@@ -624,7 +623,7 @@ const ELEMENT_SELECTORS = {
  * (the previous challenge elements may still be present on the page, and hidden using opacity).
  * @type {string}
  */
-const PREVIOUS_CHALLENGE_ELEMENT_SELECTOR = '.i_c9v *';
+const PREVIOUS_CHALLENGE_ELEMENT_SELECTOR = '._1cTBC ._1V33c *';
 
 /**
  * The class names to apply to the control forms.

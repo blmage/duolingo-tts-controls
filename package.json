@@ -3,7 +3,7 @@
   "description": "A small browser extension providing playback controls for some of the challenges on Duolingo.",
   "license": "MIT",
   "author": "blmage",
-  "version": "2.5.3",
+  "version": "2.6.0",
   "scripts": {
     "build": "rollup -c --environment production",
     "build-debug": "rollup -c --environment development",
@@ -38,6 +38,7 @@
     "eslint-plugin-react": "^7.24.0",
     "one-liner.macro": "git+https://github.com/blmage/one-liner.macro.git#semver:^3.2.2-patch",
     "rollup": "^2.55.1",
+    "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-purified-css": "git+https://github.com/blmage/rollup-plugin-purified-css.git#semver:^1.0.0",
     "rollup-plugin-strict-alias": "^1.0.0",
     "rollup-plugin-terser": "^7.0.2"

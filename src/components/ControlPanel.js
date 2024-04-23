@@ -603,7 +603,8 @@ const CLASS_NAMES = {
         // Copied from the global wrapper of the special letter buttons provided for some languages (such as French).
         // The class responsible for the null height is ignored here.
         '_1rTak',
-        `${EXTENSION_PREFIX}control-buttons`,
+        '_3SM2V',
+          `${EXTENSION_PREFIX}control-buttons`,
       ],
       [KEYBOARD_HINT]: [
         `${EXTENSION_PREFIX}control-keyboard-hint`,
