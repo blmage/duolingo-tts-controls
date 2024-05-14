@@ -95,8 +95,8 @@ const CLASS_NAMES = {
     ],
     [INPUT]: [
       // Copied from the session progress bar.
-      '_2_zk1',
       'GaL6P',
+      '_1ivd5',
       `${EXTENSION_PREFIX}slider-input`,
     ],
     [HINT]: [
