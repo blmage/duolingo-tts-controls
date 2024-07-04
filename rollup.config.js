@@ -39,7 +39,7 @@ const BASE_PLUGINS = [
 const SOURCE_PLUGINS = {
   'ui': [
     css({
-      output: 'dist/assets/css/ui.css',
+      output: 'dist/common/assets/css/ui.css',
     })
   ],
 };
