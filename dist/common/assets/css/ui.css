@@ -816,7 +816,7 @@ svg:not(:root).svg-inline--fa,svg:not(:host).svg-inline--fa {
 ._duo-ttsc_control-form {
   grid-row: 2;
   height: 64px;
-  margin: 6px 5px 0;
+  margin: 0 5px;
   text-align: center;
   z-index: 10;
 }
@@ -898,6 +898,11 @@ svg:not(:root).svg-inline--fa,svg:not(:host).svg-inline--fa {
   color: var(--web-ui_progress-bar-color, #58cc02);
   overflow: hidden;
   -webkit-appearance: none;
+  /* Copied from the inline styles of the progress bar */
+  --web-ui_progress-bar-color: rgb(var(--color-owl));
+  --__internal__progress-bar-height: 16px;
+  --__internal__progress-bar-inner-value: 0%;
+  --__internal__progress-bar-value: 3.1%;
 }
 
 ._duo-ttsc_slider-input::-webkit-slider-runnable-track {
