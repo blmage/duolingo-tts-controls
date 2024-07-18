@@ -37,9 +37,8 @@ export const POSITION_STEP = 0.1;
  * @param {string} ttsSpeed A TTS speed.
  * @returns {number} The minimum allowed playback rate for TTS sounds of the given speed.
  */
-export const getTtsMinRate = clampSoundSettingValue(
-  SOUND_SETTING_RATE,
-  SOUND_SPEED_SLOW === _ ? 1.0 : 0.5
+export const getTtsMinRate = ttsSpeed => ( // eslint-disable-line no-unused-vars
+  clampSoundSettingValue(SOUND_SETTING_RATE, 0.5)
 );
 
 /**
