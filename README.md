@@ -19,12 +19,12 @@ challenges on [Duolingo](https://www.duolingo.com).
 * [Keyboard shortcuts](#keyboard-shortcuts)
 * [Limitations](#limitations)
 * [Bug reports and feature requests](#bug-reports-and-feature-requests)
+* [License](#license)
 
 ### Download
 
 * [**Chrome** extension](https://chrome.google.com/webstore/detail/duolingo-tts-controls/hfgbpmknceenkbljmjlogkmhbpnbiika)
 * [**Firefox** add-on](https://addons.mozilla.org/firefox/addon/duolingo-tts-controls/)
-* [**Opera** addon](https://addons.opera.com/fr/extensions/details/duolingo-tts-controls/)
 
 ### Features
 
@@ -120,3 +120,9 @@ _This can happen for example when a "keyboard-aware" word bank is available for 
 
 If you encounter a bug, or if you have a suggestion regarding a new feature, don't hesitate to
 [open a related issue](https://github.com/blmage/duolingo-tts-controls/issues/new)!
+
+### License
+
+MIT, see [LICENSE](LICENSE)
+
+**Duolingo is a registered trademark of Duolingo, Inc. This extension is not affiliated with or endorsed by Duolingo, Inc.**
