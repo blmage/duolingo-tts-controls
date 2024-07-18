@@ -93,7 +93,7 @@
     color: var(--web-ui_progress-bar-color, #58cc02);
     overflow: hidden;
     -webkit-appearance: none;
-    /* Copied from the inline styles of the progress ba r*/
+    /* Copied from the inline styles of the progress bar */
     --web-ui_progress-bar-color: rgb(var(--color-owl));
     --__internal__progress-bar-height: 16px;
     --__internal__progress-bar-inner-value: 0%;
