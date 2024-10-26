@@ -98,6 +98,7 @@ const CLASS_NAMES = {
       'GaL6P',
       '_1ivd5',
       '_2-LJi',
+      '_3yKMC',
       `${EXTENSION_PREFIX}slider-input`,
     ],
     [HINT]: [

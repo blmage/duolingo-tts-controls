@@ -102,19 +102,19 @@ const CLASS_NAMES = {
       ],
       // Copied from the special letter buttons.
       [BUTTON]: [
-        '_8AMBh',
-        '_2vfJy',
-        '_3Qy5R',
-        '_2yFpW',
         '_1Qh5D',
         '_36g4N',
         '_2YF0P',
         '_2yFpW',
+        '_2V6ug',
+        '_1ursp',
+        '_7jW2t',
         `${EXTENSION_PREFIX}control-button`,
       ],
       [BUTTON__DISABLED]: [
         '_20q0d',
         '_1NM1Q',
+        '_2wryV',
         // Copied by searching for a class that resets the bottom border, alongside the other button classes.
         '_1_xfn',
       ],
