@@ -598,7 +598,7 @@ const SLOW_PLAYBACK_BUTTON = 'slow-playback-button';
 const ELEMENT_SELECTORS = {
   [PLAYBACK_BUTTONS_WRAPPER]: {
     [FORM_STYLE_BASIC]: '._3C4MQ ._3qAs-',
-    [FORM_STYLE_CARTOON]: '._31yjb .rPXvv',
+    [FORM_STYLE_CARTOON]: '._31yjb .rPXvv, ._31yjb ._1tbN5',
   },
   // The wrapper of the <button> elements which trigger playing the TTS sounds.
   [PLAYBACK_BUTTON_WRAPPER]: {
